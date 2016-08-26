@@ -3,7 +3,7 @@ import string
 
 from crypto.classes.ciphers.base import CryptoCipher
 from Crypto.Cipher import XOR
-from Crypto.Random import random
+from Crypto import Random
 
 
 class XORCipher(CryptoCipher):
@@ -24,9 +24,9 @@ class XORCipher(CryptoCipher):
             )
 
         if ascii_only:
-            return "".join(random.choice(string.ascii_letters) for i in xrange(key_size))
+            return "".join(Random.random.choice(string.ascii_letters) for i in xrange(key_size))
         else:
-            random_device = random.Random.new()
+            random_device = Random.new()
             return random_device.read(key_size)
 
     @CryptoCipher.key.setter
