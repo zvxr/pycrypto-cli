@@ -2,6 +2,7 @@
 from crypto.classes.ciphers.base import BlockCipher
 from Crypto import Random
 from Crypto.Cipher import AES
+from Crypto.Util import Counter
 
 
 class AESCipher(BlockCipher):
@@ -9,13 +10,16 @@ class AESCipher(BlockCipher):
     SUPPORTED_MODES = (
         AES.MODE_CBC,
         AES.MODE_CFB,
+        AES.MODE_CTR,
         AES.MODE_ECB,
         AES.MODE_OFB
     )
 
-    def __init__(self, key=None, iv=None, mode=AES.MODE_CFB):
+    def __init__(self, key=None, iv=None, mode=AES.MODE_CFB, initial_value=1):
+        """initial_value is only applied to CTR."""
         super(AESCipher, self).__init__(key, iv)
         self._mode = mode
+        self.initial_value = initial_value
 
     @staticmethod
     def generate_iv():
@@ -60,13 +64,22 @@ class AESCipher(BlockCipher):
             raise AttributeError("AES mode not supported.")
         self._mode = value
 
+    def _get_counter(self):
+        """Returns a stateful Counter instance of 128 bits to work
+        with AES key sizes. No prefix or suffix is applied.
+        """
+        return Counter(128, initial_value=self.initial_value)
+
     def _get_cipher(self):
         """Return a Pycrypto AES cipher instance.
         `key`, `mode` and depending on mode `iv` must be set.
         """
-        if self.mode in (AES.MODE_ECB, AES.MODE_CTR):
+        if self.mode == AES.MODE_ECB:
             return AES.new(self.key, self.mode)
-        return AES.new(self.key, self.mode, self.iv)
+        elif self.mode == AES.MODE_CTR:
+            return AES.new(self.key, self.mode, counter=self._get_counter())
+        else:
+            return AES.new(self.key, self.mode, self.iv)
 
     def encrypt(self, plaintext):
         """Generate cipher, encrypt, and encode data."""
