@@ -12,10 +12,9 @@ CHAINING_MODES = {
     'CFB': AES.MODE_CFB,
     'CTR': AES.MODE_CTR,
     'ECB': AES.MODE_ECB,
-    'OFB': AES.MODE_OFB,
-    'OPENPGP': AES.MODE_OPENPGP
+    'OFB': AES.MODE_OFB
 }
-CHAINING_MODE_CHOICES = AES_MODES.keys()
+CHAINING_MODE_CHOICES = CHAINING_MODES.keys()
 CHAINING_MODE_DEFAULT = "CFB"
 
 CIPHERS = {
@@ -34,7 +33,7 @@ ENCODER_CHOICES = ENCODERS.keys()
 ENCODER_DEFAULT = "BASE64"
 
 
-def add_io_args(parser):
+def add_data_parser_args(parser):
     """Add standard I/O arguments to ArgumentParser.
     Uses switches (d, v, x).
     """
@@ -59,14 +58,13 @@ def add_io_args(parser):
     )
 
 
-def add_cipher_args(parser):
+def add_cipher_parser_args(parser):
     """Add cipher specific arguments to ArgumentParser.
     Adds positional argument 'cipher'.
     Uses optional switches (D, e, iv, k, m).
     """
     parser.add_argument(
         "cipher",
-        "-c",
         choices=CIPHER_CHOICES,
         default=CIPHER_DEFAULT,
         help="Cipher to apply. Choices:{}".format(CIPHER_CHOICES),
