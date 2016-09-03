@@ -1,14 +1,14 @@
 
+import crypto.classes.ciphers.aes as aes_cipher
+import crypto.classes.ciphers.base as base_cipher
+import crypto.classes.ciphers.xor as xor_cipher
+import crypto.classes.encoders.base as base_encoders
+import crypto.classes.encoders.binary as binary_encoders
 import mock
 import string
 import unittest
 import util
 
-from crypto.classes.ciphers.aes import AESCipher
-from crypto.classes.ciphers.base import BlockCipher, CryptoCipher
-from crypto.classes.ciphers.xor import XORCipher
-from crypto.classes.encoders.base import Encoder, NullEncoder
-from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
 from Crypto.Cipher import AES
 from Crypto.Random import random
 
@@ -47,7 +47,7 @@ class CryptoCipherMixin(object):
         self.assertRaises(TypeError, cipher.set_encoding, lambda: None)
         encrypt = mock.Mock()
         decrypt = mock.Mock()
-        encoder = Encoder(encrypt, decrypt)
+        encoder = base_encoders.Encoder(encrypt, decrypt)
         cipher.set_encoding(encoder)
         self.assertEqual(cipher._encode("meow", 32, paws_mode=True), encrypt.return_value)
         encrypt.assert_called_with("meow", 32, paws_mode=True)
@@ -113,65 +113,65 @@ class BlockCipherMixin(CryptoCipherMixin):
 # Tests for base classes.
 class CryptoCipherTest(unittest.TestCase, CryptoCipherMixin):
     def test_init(self):
-        cipher = CryptoCipher()
+        cipher = base_cipher.CryptoCipher()
         self._test_init_no_args(cipher, overrides_encryption=False)
 
     def test_key_property(self):
-        cipher = CryptoCipher(key="fishsticks")
+        cipher = base_cipher.CryptoCipher(key="fishsticks")
         self._test_init_key(cipher, "fishsticks")
         self._test_key_setter(cipher, "puppychow")
 
     def test_set_encoding(self):
-        cipher = CryptoCipher()
+        cipher = base_cipher.CryptoCipher()
         self._test_set_encoding(cipher)
 
 
 class BlockCipherTest(unittest.TestCase, BlockCipherMixin):
     def test_init(self):
-        cipher = BlockCipher()
+        cipher = base_cipher.BlockCipher()
         self._test_init_no_args(cipher, overrides_encryption=False)
 
     def test_init_args(self):
-        cipher = BlockCipher(key="fishsticks", iv="meow")
+        cipher = base_cipher.BlockCipher(key="fishsticks", iv="meow")
         self._test_init_key(cipher, "fishsticks")
         self._test_init_iv(cipher, "meow")
 
     def test_iv_property(self):
-        cipher = BlockCipher(iv="meow")
+        cipher = base_cipher.BlockCipher(iv="meow")
         self._test_init_iv(cipher, "meow")
         self._test_iv_setter(cipher, "wruff")
 
     def test_get_pad_char(self):
-        cipher = BlockCipher()
+        cipher = base_cipher.BlockCipher()
         self._test_get_pad_char(cipher)
 
     def test_pad(self):
-        cipher = BlockCipher()
+        cipher = base_cipher.BlockCipher()
         self._test_pad(cipher)
 
     def test_unpad(self):
-        cipher = BlockCipher()
+        cipher = base_cipher.BlockCipher()
         self._test_unpad(cipher)
 
 
 # Tests for implemented cipher classes.
 class AESCipherTest(unittest.TestCase, BlockCipherMixin):
     def test_init(self):
-        cipher = AESCipher()
+        cipher = aes_cipher.AESCipher()
         self._test_init_no_args(cipher)
 
     def test_key_property(self):
-        cipher = AESCipher(key="wruff wruff meow")
+        cipher = aes_cipher.AESCipher(key="wruff wruff meow")
         self._test_init_key(cipher, "wruff wruff meow")
         self._test_key_setter(cipher, "meow wruff wruff", invalid_key="wruff")
 
     def test_iv_property(self):
-        cipher = AESCipher(iv="meow wruff wruff")
+        cipher = aes_cipher.AESCipher(iv="meow wruff wruff")
         self._test_init_iv(cipher, "meow wruff wruff")
         self._test_iv_setter(cipher, "wruff wruff meow", invalid_iv="wruff")
 
     def test_mode_property(self):
-        cipher = AESCipher()  # Expects Cipher FeedBack.
+        cipher = aes_cipher.AESCipher()  # Expects Cipher FeedBack.
         self.assertEqual(cipher._mode, AES.MODE_CFB)
         self.assertEqual(cipher.mode, AES.MODE_CFB)
 
@@ -182,26 +182,34 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         self.assertRaises(AttributeError, setattr, cipher, 'mode', AES.MODE_PGP)
 
     def test_generate_iv(self):
-        self.assertEqual(len(AESCipher.generate_iv()), AES.block_size)
+        self.assertEqual(len(aes_cipher.generate_iv()), AES.block_size)
 
     def test_generate_key(self):
-        self.assertEqual(len(AESCipher.generate_key()), 16)  # test default.
-        self.assertEqual(len(AESCipher.generate_key(16)), 16)
-        self.assertEqual(len(AESCipher.generate_key(24)), 24)
-        self.assertEqual(len(AESCipher.generate_key(32)), 32)
-        self.assertRaises(AttributeError, AESCipher.generate_key, 48)
+        self.assertEqual(len(aes_cipher.generate_key()), 16)  # test default.
+        self.assertEqual(len(aes_cipher.generate_key(16)), 16)
+        self.assertEqual(len(aes_cipher.generate_key(24)), 24)
+        self.assertEqual(len(aes_cipher.generate_key(32)), 32)
+        self.assertRaises(AttributeError, aes_cipher.generate_key, 48)
 
     def test_set_encoding(self):
-        cipher = AESCipher()
+        cipher = aes_cipher.AESCipher()
         self._test_set_encoding(cipher)
 
     @mock.patch('Crypto.Cipher.AES.new')
     def test_get_cipher(self, aes_new_mock):
-        cipher = AESCipher(key="wruff wruff meow", iv="meow wruff wruff", mode=AES.MODE_CFB)
+        cipher = aes_cipher.AESCipher(
+            key="wruff wruff meow",
+            iv="meow wruff wruff",
+            mode=AES.MODE_CFB
+        )
         self.assertEqual(cipher._get_cipher(), aes_new_mock.return_value)
         aes_new_mock.assert_called_with("wruff wruff meow", AES.MODE_CFB, "meow wruff wruff")
 
-        cipher = AESCipher(key="wruff wruff meow", iv="meow wruff wruff", mode=AES.MODE_ECB)
+        cipher = aes_cipher.AESCipher(
+            key="wruff wruff meow",
+            iv="meow wruff wruff",
+            mode=AES.MODE_ECB
+        )
         self.assertEqual(cipher._get_cipher(), aes_new_mock.return_value)
         aes_new_mock.assert_called_with("wruff wruff meow", AES.MODE_ECB)
 
@@ -210,7 +218,7 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
     @mock.patch('crypto.classes.ciphers.aes.AESCipher._get_cipher')
     def test_encrypt(self, get_cipher_mock, pad_mock, encode_mock):
         aes_cipher_mock = get_cipher_mock.return_value
-        cipher = AESCipher()
+        cipher = aes_cipher.AESCipher()
         self.assertEqual(cipher.encrypt("meow"), encode_mock.return_value)
         get_cipher_mock.assert_called_with()
         pad_mock.assert_called_with("meow", AES.block_size)
@@ -222,7 +230,7 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
     @mock.patch('crypto.classes.ciphers.aes.AESCipher._get_cipher')
     def test_decrypt(self, get_cipher_mock, unpad_mock, decode_mock):
         aes_cipher_mock = get_cipher_mock.return_value
-        cipher = AESCipher()
+        cipher = aes_cipher.AESCipher()
         self.assertEqual(cipher.decrypt("wruff"), unpad_mock.return_value)
         get_cipher_mock.assert_called_with()
         decode_mock.assert_called_with("wruff")
@@ -249,43 +257,47 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         """This will actually execute encrypting/decrypting data.
         Key and IV generation is derived entirely from class staticmethods.
         """
-        cipher = AESCipher()
+        cipher = aes_cipher.AESCipher()
         random_device = random.Random.new()
 
         # Test various key sizes.
         for key_size in (16, 24, 32):
-            cipher = AESCipher(
-                key=AESCipher.generate_key(key_size),
-                iv=AESCipher.generate_iv(),
+            cipher = aes_cipher.AESCipher(
+                key=aes_cipher.generate_key(key_size),
+                iv=aes_cipher.generate_iv(),
                 mode=mode
             )
             util.test_cipher_encryption(self, cipher, random_device.read(2000))
 
         # Test encoders.
-        for encoder in (NullEncoder, Base64Encoder, URLSafeBase64Encoder):
+        for encoder in (
+            base_encoders.NullEncoder,
+            binary_encoders.Base64Encoder,
+            binary_encoders.URLSafeBase64Encoder
+        ):
             cipher.set_encoding(encoder)
             util.test_cipher_encryption(self, cipher, random_device.read(2000))
 
 
 class XORCipherTest(unittest.TestCase, CryptoCipherMixin):
     def test_init(self):
-        cipher = XORCipher()
+        cipher = xor_cipher.XORCipher()
         self._test_init_no_args(cipher)
 
     def test_key_property(self):
-        cipher = XORCipher(key="fishsticks")
+        cipher = xor_cipher.XORCipher(key="fishsticks")
         self._test_init_key(cipher, "fishsticks")
         self._test_key_setter(cipher, "puppychow", invalid_key="puppy" * 12)
 
     def test_set_encoding(self):
-        cipher = XORCipher()
+        cipher = xor_cipher.XORCipher()
         self._test_set_encoding(cipher)
 
     @mock.patch('crypto.classes.ciphers.xor.XORCipher._encode')
     @mock.patch('Crypto.Cipher.XOR.new')
     def test_encrypt(self, xor_new_mock, encode_mock):
         xor_cipher_mock = xor_new_mock.return_value
-        cipher = XORCipher("fishsticks")
+        cipher = xor_cipher.XORCipher("fishsticks")
         self.assertEqual(cipher.encrypt("meow"), encode_mock.return_value)
         xor_new_mock.assert_called_with("fishsticks")
         xor_cipher_mock.encrypt.assert_called_with("meow")
@@ -295,7 +307,7 @@ class XORCipherTest(unittest.TestCase, CryptoCipherMixin):
     @mock.patch('Crypto.Cipher.XOR.new')
     def test_decrypt(self, xor_new_mock, decode_mock):
         xor_cipher_mock = xor_new_mock.return_value
-        cipher = XORCipher("puppychow")
+        cipher = xor_cipher.XORCipher("puppychow")
         self.assertEqual(cipher.decrypt("wruff"), xor_cipher_mock.decrypt.return_value)
         xor_new_mock.assert_called_with("puppychow")
         decode_mock.assert_called_with("wruff")
@@ -303,19 +315,19 @@ class XORCipherTest(unittest.TestCase, CryptoCipherMixin):
 
     def test_generate_key(self):
         # Test random byte array.
-        self.assertEqual(len(XORCipher.generate_key()), 16)  # test default.
-        self.assertEqual(len(XORCipher.generate_key(16)), 16)
-        self.assertEqual(len(XORCipher.generate_key(32)), 32)
-        self.assertRaises(AttributeError, XORCipher.generate_key, 48)
+        self.assertEqual(len(xor_cipher.generate_key()), 16)  # test default.
+        self.assertEqual(len(xor_cipher.generate_key(16)), 16)
+        self.assertEqual(len(xor_cipher.generate_key(32)), 32)
+        self.assertRaises(AttributeError, xor_cipher.generate_key, 48)
 
         # Test ASCII only.
-        self.assertEqual(len(XORCipher.generate_key(ascii_only=True)), 16)
-        for char in XORCipher.generate_key(32, ascii_only=True):
+        self.assertEqual(len(xor_cipher.generate_key(ascii_only=True)), 16)
+        for char in xor_cipher.generate_key(32, ascii_only=True):
             self.assertTrue(char in string.ascii_letters)
 
     def test_encryption(self):
         """This will actually execute encrypting/decrypting data."""
-        cipher = XORCipher("fishsticks")
+        cipher = xor_cipher.XORCipher("fishsticks")
 
         def run(cipher, plaintext):
             ciphertext = cipher.encrypt(plaintext)
@@ -328,22 +340,22 @@ class XORCipherTest(unittest.TestCase, CryptoCipherMixin):
         util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
 
         # Test encoders.
-        cipher.set_encoding(NullEncoder)
+        cipher.set_encoding(base_encoders.NullEncoder)
         util.test_cipher_encryption(self, cipher, "wruff" * 400)
         util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
 
-        cipher.set_encoding(Base64Encoder)
+        cipher.set_encoding(binary_encoders.Base64Encoder)
         util.test_cipher_encryption(self, cipher, "meow" * 500)
         util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
 
-        cipher.set_encoding(URLSafeBase64Encoder)
+        cipher.set_encoding(binary_encoders.URLSafeBase64Encoder)
         util.test_cipher_encryption(self, cipher, "wruff" * 400)
         util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
 
         # Test keys and instances.
-        cipher1 = XORCipher("fishsticks")
-        cipher2 = XORCipher("fishsticks")
-        cipher3 = XORCipher("puppychow")
+        cipher1 = xor_cipher.XORCipher("fishsticks")
+        cipher2 = xor_cipher.XORCipher("fishsticks")
+        cipher3 = xor_cipher.XORCipher("puppychow")
 
         self.assertEqual(cipher1.encrypt("meow"), cipher2.encrypt("meow"))
         self.assertNotEqual(cipher2.encrypt("wruff"), cipher3.encrypt("wruff"))

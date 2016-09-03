@@ -21,21 +21,6 @@ class AESCipher(BlockCipher):
         self._mode = mode
         self.initial_value = initial_value
 
-    @staticmethod
-    def generate_iv():
-        """Randomly generate an IV byte string for various modes of AES."""
-        return Random.new().read(AES.block_size)
-
-    @staticmethod
-    def generate_key(key_size=16):
-        """Randomly generate a key of byte size `key_size`. Must be 16, 24, or 32."""
-        if key_size not in (16, 24, 32):
-            raise AttributeError(
-                "key_size must be 16 (AES-128), 24 (AES-192), or 32 (AES-256)."
-            )
-        random_device = Random.new()
-        return random_device.read(key_size)
-
     @BlockCipher.key.setter
     def key(self, value):
         if value is not None and len(value) not in (16, 24, 32):
@@ -94,3 +79,18 @@ class AESCipher(BlockCipher):
         decoded_ciphertext = self._decode(ciphertext)
         plaintext = aes_cipher.decrypt(decoded_ciphertext)
         return self.unpad(plaintext)
+
+
+def generate_iv():
+    """Randomly generate an IV byte string for various modes of AES."""
+    return Random.new().read(AES.block_size)
+
+
+def generate_key(key_size=16):
+    """Randomly generate a key of byte size `key_size`. Must be 16, 24, or 32."""
+    if key_size not in (16, 24, 32):
+        raise AttributeError(
+            "key_size must be 16 (AES-128), 24 (AES-192), or 32 (AES-256)."
+        )
+    random_device = Random.new()
+    return random_device.read(key_size)
