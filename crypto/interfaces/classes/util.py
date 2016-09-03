@@ -1,38 +1,10 @@
 
-import atexit
 import getpass
 import os
 import subprocess
 
 """Utility (helper) methods for commandline functionality.
 """
-
-
-def clear_screen_on_exit():
-    """Registers an OS clear screen command on application exit."""
-    def clear_screen():
-        if platform.system() == "Windows":
-            os.system("cls")
-        else:
-            os.system("clear")
-
-    atexit.register(clear_screen)
-
-
-def get_data():
-    """Collects raw input and returns."""
-    data = ""
-    print("Please type data. Press ENTER twice or CTRL+C to end.")
-
-    while data[-2:] != "\n\n":
-        try:
-            data += raw_input()
-            data += "\n"
-        except KeyboardInterrupt:
-            break
-
-    return data.rstrip("\n")
-
 
 def get_data_from_clipboard():
     """Returns what is in the clipboard."""
