@@ -1,8 +1,8 @@
 
 import argparse
+import crypto.interfaces.commandline.base as base_cli
+import crypto.interfaces.commandline.cipher as cipher_cli
 
-from crypto.interfaces.classes.base import DataInterface
-from crypto.interfaces.classes.cipher import CipherInterface
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -14,14 +14,14 @@ if __name__ == "__main__":
     )
 
     data_parser = argparse.ArgumentParser(add_help=False)
-    DataInterface.add_parser_args(data_parser)
+    base_cli.add_parser_args(data_parser)
 
     cipher_parser = mode_parser.add_parser(
         "cipher",
         parents=[data_parser],
         help="Use cipher module."
     )
-    CipherInterface.add_parser_args(cipher_parser)
+    cipher_cli.add_parser_args(cipher_parser)
 
     hash_parser = mode_parser.add_parser(
         "hash",
@@ -31,5 +31,5 @@ if __name__ == "__main__":
 
     # Debugging for now.
     args = parser.parse_args()
-    import pdb; pdb.set_trace()
     print args
+    args.execute(args)
