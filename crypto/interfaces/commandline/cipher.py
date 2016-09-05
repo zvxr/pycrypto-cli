@@ -56,6 +56,19 @@ class CipherInterface(base_cli.DataInterface):
             data
         )
         self.cipher = CIPHERS[cipher]
+        self.cipher.data = self.get_data()
+        self.cipher.iv = iv
+        self.cipher.key = key
+        self.cipher.mode = mode
+        self.decrypt = decrypt
+        if encoder:
+            self.cipher.set_encoding(ENCODERS[encoder])
+
+    def get_key(self):
+        if not self.cipher.key:
+            # Call correct generate key method.
+
+        return self.data
 
 
 def execute(args):
