@@ -49,6 +49,7 @@ class CipherInterface(base_cli.DataInterface):
         *args,
         **kwargs
     ):
+        """Sets up the cipher itself when initializing."""
         super(CipherInterface, self).__init__(
             clear_on_exit,
             clipboard_input,
@@ -56,26 +57,23 @@ class CipherInterface(base_cli.DataInterface):
             data
         )
         self.cipher = CIPHERS[cipher]
-        self.cipher.data = self.get_data()
+        self.cipher.data = self.get_data(data)
+        self.cipher.key = self.get_key(key)
         self.cipher.iv = iv
-        self.cipher.key = key
         self.cipher.mode = mode
         self.decrypt = decrypt
         if encoder:
             self.cipher.set_encoding(ENCODERS[encoder])
 
     def get_key(self):
-        if not self.cipher.key:
-            # Call correct generate key method.
-
-        return self.data
+        if not key:
+            return self.cipher.generate_key()
 
 
 def execute(args):
     """Instantiates interface from argparse namespace and executes.
     """
-    interface = CipherInterface(args)
-    print "execute cipher"
+    interface = CipherInterface(**vars(args))
 
 
 def add_parser_args(parser):
