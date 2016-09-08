@@ -57,7 +57,7 @@ class CipherInterface(base_cli.DataInterface):
             data
         )
         self.cipher = CIPHERS[cipher]
-        self.cipher.data = self.get_data(data)
+        self.cipher.data = self.get_data()
         self.cipher.key = self.get_key(key)
         self.cipher.iv = iv
         self.cipher.mode = mode
