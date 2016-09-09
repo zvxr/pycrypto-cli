@@ -5,6 +5,8 @@ from Crypto import Random
 
 class CryptoCipher(object):
     """Base Class for Ciphers."""
+    attributes = ('key',)
+
     def __init__(self, key=None):
         self._key = key
         self._encoder = None
@@ -58,6 +60,8 @@ class CryptoCipher(object):
 
 class BlockCipher(CryptoCipher):
     """Base Class for Block Ciphers."""
+    attributes = ('key', 'iv')
+
     def __init__(self, key=None, iv=None):
         super(BlockCipher, self).__init__(key)
         self._iv = iv

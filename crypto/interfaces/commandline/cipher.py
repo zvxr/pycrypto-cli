@@ -1,11 +1,12 @@
 
+import crypto.interfaces.commandline.base as base_cli
+
 from crypto.classes.ciphers.aes import AESCipher
 from crypto.classes.ciphers.xor import XORCipher
 from crypto.classes.encoders.base import NullEncoder
 from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
 from Crypto.Cipher import AES
 
-import crypto.interfaces.commandline.base as base_cli
 
 CHAINING_MODES = {
     'CBC': AES.MODE_CBC,
@@ -56,24 +57,50 @@ class CipherInterface(base_cli.DataInterface):
             clipboard_output,
             data
         )
-        self.cipher = CIPHERS[cipher]
+        self.cipher = CIPHERS[cipher]()
         self.cipher.data = self.get_data()
-        self.cipher.key = self.get_key(key)
-        self.cipher.iv = iv
-        self.cipher.mode = mode
+        self.cipher.key = self.get_key() if not key else key
         self.decrypt = decrypt
+
+        if 'iv' in self.cipher.attributes:
+            self.cipher.iv = self.get_iv(iv) if not iv else iv
+
+        if 'mode' in self.cipher.attributes and mode:
+            self.cipher.mode = mode
+
         if encoder:
             self.cipher.set_encoding(ENCODERS[encoder])
 
+    def execute(self):
+        print "KEY:  {}".format(self.cipher.key)
+        if hasattr(self.cipher, 'iv'):
+            print "IV:   {}".format(self.cipher.iv)
+        if self.decrypt:
+            print "DATA: {}".format(self.cipher.decrypt(self.data))
+        else:
+            print "DATA: {}".format(self.cipher.encrypt(self.data))
+
     def get_key(self):
-        if not key:
+        """Calls and returns cipher's key generation method.
+        If it doesn't exist, initiate a prompt.
+        """
+        if hasattr(self.cipher, 'generate_key'):
             return self.cipher.generate_key()
+        return self.get_from_prompt("Please enter a valid key: ")
+
+    def get_iv(self):
+        """Calls and returns cipher's IV generation method.
+        It if doesn't exist, initiate a prompt.
+        """
+        if hasattr(self.cipher, 'generate_iv'):
+            return self.cipher.generate_iv()
+        return self.get_from_prompt("Please enter a valid IV: ")
 
 
 def execute(args):
-    """Instantiates interface from argparse namespace and executes.
-    """
+    """Instantiates interface from argparse namespace and executes."""
     interface = CipherInterface(**vars(args))
+    interface.execute()
 
 
 def add_parser_args(parser):

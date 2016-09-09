@@ -47,12 +47,17 @@ class DataInterface(Interface):
             raw_input("Press ENTER key or CTRL+C to complete.")
 
     def get_data(self):
+        """Sets data-- prioritizes clipboard, but also will get from prompt. Returns value."""
         if self.clipboard_input:
             self.set_data_from_clipboard()
         if not self.data:
             self.set_data_from_prompt()
 
         return self.data
+
+    def get_from_prompt(self, prompt="Please enter value: "):
+        """A very simple method for fetching data from raw input and returning."""
+        return raw_input(prompt=prompt)
 
     def set_data_from_clipboard(self):
         """Sets data to contents of clipboard."""

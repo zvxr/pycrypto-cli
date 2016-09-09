@@ -182,14 +182,16 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         self.assertRaises(AttributeError, setattr, cipher, 'mode', AES.MODE_PGP)
 
     def test_generate_iv(self):
-        self.assertEqual(len(aes_cipher.generate_iv()), AES.block_size)
+        cipher = aes_cipher.AESCipher()
+        self.assertEqual(len(cipher.generate_iv()), AES.block_size)
 
     def test_generate_key(self):
-        self.assertEqual(len(aes_cipher.generate_key()), 16)  # test default.
-        self.assertEqual(len(aes_cipher.generate_key(16)), 16)
-        self.assertEqual(len(aes_cipher.generate_key(24)), 24)
-        self.assertEqual(len(aes_cipher.generate_key(32)), 32)
-        self.assertRaises(AttributeError, aes_cipher.generate_key, 48)
+        cipher = aes_cipher.AESCipher()
+        self.assertEqual(len(cipher.generate_key()), 16)  # test default.
+        self.assertEqual(len(cipher.generate_key(16)), 16)
+        self.assertEqual(len(cipher.generate_key(24)), 24)
+        self.assertEqual(len(cipher.generate_key(32)), 32)
+        self.assertRaises(AttributeError, cipher.generate_key, 48)
 
     def test_set_encoding(self):
         cipher = aes_cipher.AESCipher()
@@ -257,16 +259,13 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         """This will actually execute encrypting/decrypting data.
         Key and IV generation is derived entirely from class staticmethods.
         """
-        cipher = aes_cipher.AESCipher()
+        cipher = aes_cipher.AESCipher(mode=mode)
+        cipher.iv = cipher.generate_iv()
         random_device = random.Random.new()
 
         # Test various key sizes.
         for key_size in (16, 24, 32):
-            cipher = aes_cipher.AESCipher(
-                key=aes_cipher.generate_key(key_size),
-                iv=aes_cipher.generate_iv(),
-                mode=mode
-            )
+            cipher.key = cipher.generate_key(key_size)
             util.test_cipher_encryption(self, cipher, random_device.read(2000))
 
         # Test encoders.
@@ -315,14 +314,15 @@ class XORCipherTest(unittest.TestCase, CryptoCipherMixin):
 
     def test_generate_key(self):
         # Test random byte array.
-        self.assertEqual(len(xor_cipher.generate_key()), 16)  # test default.
-        self.assertEqual(len(xor_cipher.generate_key(16)), 16)
-        self.assertEqual(len(xor_cipher.generate_key(32)), 32)
-        self.assertRaises(AttributeError, xor_cipher.generate_key, 48)
+        cipher = xor_cipher.XORCipher()
+        self.assertEqual(len(cipher.generate_key()), 16)  # test default.
+        self.assertEqual(len(cipher.generate_key(16)), 16)
+        self.assertEqual(len(cipher.generate_key(32)), 32)
+        self.assertRaises(AttributeError, cipher.generate_key, 48)
 
         # Test ASCII only.
-        self.assertEqual(len(xor_cipher.generate_key(ascii_only=True)), 16)
-        for char in xor_cipher.generate_key(32, ascii_only=True):
+        self.assertEqual(len(cipher.generate_key(ascii_only=True)), 16)
+        for char in cipher.generate_key(32, ascii_only=True):
             self.assertTrue(char in string.ascii_letters)
 
     def test_encryption(self):

@@ -7,6 +7,8 @@ from Crypto.Util import Counter
 
 class AESCipher(BlockCipher):
     """AES symmetric cipher."""
+    attributes = ('key', 'iv', 'mode')
+
     SUPPORTED_MODES = (
         AES.MODE_CBC,
         AES.MODE_CFB,
@@ -80,17 +82,15 @@ class AESCipher(BlockCipher):
         plaintext = aes_cipher.decrypt(decoded_ciphertext)
         return self.unpad(plaintext)
 
+    def generate_iv(self):
+        """Randomly generate an IV byte string for various modes of AES."""
+        return Random.new().read(AES.block_size)
 
-def generate_iv():
-    """Randomly generate an IV byte string for various modes of AES."""
-    return Random.new().read(AES.block_size)
-
-
-def generate_key(key_size=16):
-    """Randomly generate a key of byte size `key_size`. Must be 16, 24, or 32."""
-    if key_size not in (16, 24, 32):
-        raise AttributeError(
-            "key_size must be 16 (AES-128), 24 (AES-192), or 32 (AES-256)."
-        )
-    random_device = Random.new()
-    return random_device.read(key_size)
+    def generate_key(self, key_size=16):
+        """Randomly generate a key of byte size `key_size`. Must be 16, 24, or 32."""
+        if key_size not in (16, 24, 32):
+            raise AttributeError(
+                "key_size must be 16 (AES-128), 24 (AES-192), or 32 (AES-256)."
+            )
+        random_device = Random.new()
+        return random_device.read(key_size)

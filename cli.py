@@ -31,5 +31,4 @@ if __name__ == "__main__":
 
     # Debugging for now.
     args = parser.parse_args()
-    print args
     args.execute(args)
