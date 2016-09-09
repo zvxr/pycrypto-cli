@@ -1,6 +1,5 @@
 
 import atexit
-import os
 import platform
 import subprocess
 
@@ -35,13 +34,6 @@ class DataInterface(Interface):
         if self.clear_on_exit:
             atexit.register(self._clear_screen)
 
-    def _clear_screen(self):
-        """Registers an OS clear screen command on application exit."""
-        if platform.system() == "Windows":
-            os.system("cls")
-        else:
-            os.system("clear")
-
     def cleanup(self):
         if self.clear_on_exit:
             raw_input("Press ENTER key or CTRL+C to complete.")
@@ -57,7 +49,7 @@ class DataInterface(Interface):
 
     def get_from_prompt(self, prompt="Please enter value: "):
         """A very simple method for fetching data from raw input and returning."""
-        return raw_input(prompt=prompt)
+        return raw_input(prompt)
 
     def set_data_from_clipboard(self):
         """Sets data to contents of clipboard."""
@@ -103,16 +95,9 @@ def execute(args):
 def add_parser_args(parser):
     """Adds DataInterface related arguments to ArgumentParser and sets execute method.
     Adds positional argument 'xor'.
-    Uses switches (d, x, v, c).
+    Uses switches (d, v, x).
     """
     parser.set_defaults(execute=execute)
-
-    parser.add_argument(
-        "--clear-on-exit",
-        "-c",
-        action="store_true",
-        help="When True will clear the screen when script completes."
-    )
 
     parser.add_argument(
         "--clipboard-input",
