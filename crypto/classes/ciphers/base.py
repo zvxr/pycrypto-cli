@@ -61,9 +61,12 @@ class CryptoCipher(object):
 class BlockCipher(CryptoCipher):
     """Base Class for Block Ciphers."""
     attributes = ('key', 'iv')
+    default_mode = None
+    supported_modes = {}
 
     def __init__(self, key=None, iv=None):
         super(BlockCipher, self).__init__(key)
+        self._mode = self.default_mode
         self._iv = iv
 
     def __repr__(self):
@@ -96,6 +99,12 @@ class BlockCipher(CryptoCipher):
         pad_char = self._get_pad_char(ignore=text[0])
         pad_size = (block_size - len(text)) % block_size or block_size
         return (pad_char * pad_size) + text
+
+    def set_mode(self, mode):
+        """Set chaining mode by mapping mode (string) to object's supported modes."""
+        if mode not in self.supported_modes:
+            raise AttributeError("Chaining mode not supported.")
+        self._mode = self.supported_modes[mode]
 
     def unpad(self, text):
         """Strip padding from text. It is expected that the `pad`

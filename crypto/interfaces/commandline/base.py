@@ -3,6 +3,9 @@ import atexit
 import os
 import platform
 import subprocess
+import sys
+import termios
+import tty
 
 
 class Interface(object):
@@ -42,9 +45,29 @@ class DataInterface(Interface):
         else:
             os.system("clear")
 
+    def _get_char(self):
+        """Fetch and return a single character input from terminal."""
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            char = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return char
+
     def cleanup(self):
         if self.clear_on_exit:
             raw_input("Press ENTER key or CTRL+C to complete.")
+
+    def get_bool_from_prompt(self, prompt="Please type Y or N:"):
+        """Locks terminal screen until user enters Y/N. Returns boolean."""
+        print(prompt),
+        while True:
+            char = self._get_char().upper()
+            if char in ("Y", "N"):
+                print("\r{} {}".format(prompt, char))
+                return True if char == "Y" else False
 
     def get_data(self):
         """Sets data-- prioritizes clipboard, but also will get from prompt. Returns value."""
@@ -57,7 +80,8 @@ class DataInterface(Interface):
 
     def get_from_prompt(self, prompt="Please enter value: "):
         """A very simple method for fetching data from raw input and returning."""
-        return raw_input(prompt=prompt)
+        import pdb; pdb.set_trace()
+        return raw_input(prompt)
 
     def set_data_from_clipboard(self):
         """Sets data to contents of clipboard."""
@@ -103,7 +127,7 @@ def execute(args):
 def add_parser_args(parser):
     """Adds DataInterface related arguments to ArgumentParser and sets execute method.
     Adds positional argument 'xor'.
-    Uses switches (d, x, v, c).
+    Uses switches (c, x, v, d, g).
     """
     parser.set_defaults(execute=execute)
 

@@ -8,15 +8,7 @@ from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
 from Crypto.Cipher import AES
 
 
-CHAINING_MODES = {
-    'CBC': AES.MODE_CBC,
-    'CFB': AES.MODE_CFB,
-    'CTR': AES.MODE_CTR,
-    'ECB': AES.MODE_ECB,
-    'OFB': AES.MODE_OFB
-}
-CHAINING_MODE_CHOICES = CHAINING_MODES.keys()
-CHAINING_MODE_DEFAULT = "CFB"
+CHAINING_MODE_CHOICES = set(AESCipher.supported_modes.keys())
 
 CIPHERS = {
     'AES': AESCipher,
@@ -63,36 +55,36 @@ class CipherInterface(base_cli.DataInterface):
         self.decrypt = decrypt
 
         if 'iv' in self.cipher.attributes:
-            self.cipher.iv = self.get_iv(iv) if not iv else iv
+            self.cipher.iv = self.get_iv() if not iv else iv
 
         if 'mode' in self.cipher.attributes and mode:
-            self.cipher.mode = mode
+            self.cipher.set_mode(mode)
 
         if encoder:
             self.cipher.set_encoding(ENCODERS[encoder])
 
     def execute(self):
-        print "KEY:  {}".format(self.cipher.key)
+        print("KEY:  {}".format(repr(self.cipher.key)))
         if hasattr(self.cipher, 'iv'):
-            print "IV:   {}".format(self.cipher.iv)
+            print("IV:   {}".format(repr(self.cipher.iv)))
         if self.decrypt:
-            print "DATA: {}".format(self.cipher.decrypt(self.data))
+            print("DATA: {}".format(repr(self.cipher.decrypt(self.data))))
         else:
-            print "DATA: {}".format(self.cipher.encrypt(self.data))
+            print("DATA: {}".format(repr(self.cipher.encrypt(self.data))))
 
     def get_key(self):
-        """Calls and returns cipher's key generation method.
-        If it doesn't exist, initiate a prompt.
+        """If cipher can generate keys, prompts user if they want key auto-generated.
+        Otherwise initiates a prompt (value from user input).
         """
-        if hasattr(self.cipher, 'generate_key'):
+        if hasattr(self.cipher, 'generate_key') and self.get_bool_from_prompt("Auto-generate key?"):
             return self.cipher.generate_key()
         return self.get_from_prompt("Please enter a valid key: ")
 
     def get_iv(self):
-        """Calls and returns cipher's IV generation method.
-        It if doesn't exist, initiate a prompt.
+        """If cipher can generate IVs, prompts user if they want IV auto-generated.
+        Otherwise initiates a prompt (value from user input).
         """
-        if hasattr(self.cipher, 'generate_iv'):
+        if hasattr(self.cipher, 'generate_iv') and self.get_bool_from_prompt("Auto-generate IV?"):
             return self.cipher.generate_iv()
         return self.get_from_prompt("Please enter a valid IV: ")
 
@@ -151,7 +143,7 @@ def add_parser_args(parser):
         "--mode",
         "-m",
         choices=CHAINING_MODE_CHOICES,
-        default=CHAINING_MODE_DEFAULT,
-        help="Chaining mode to use. This applies only to AES cipher.",
+        default=None,
+        help="Chaining mode to use. This applies only to block ciphers.",
         type=str.upper
     )
