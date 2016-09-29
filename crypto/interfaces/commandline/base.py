@@ -1,6 +1,5 @@
 
 import atexit
-import os
 import platform
 import subprocess
 import sys
@@ -80,7 +79,6 @@ class DataInterface(Interface):
 
     def get_from_prompt(self, prompt="Please enter value: "):
         """A very simple method for fetching data from raw input and returning."""
-        import pdb; pdb.set_trace()
         return raw_input(prompt)
 
     def set_data_from_clipboard(self):
@@ -127,16 +125,9 @@ def execute(args):
 def add_parser_args(parser):
     """Adds DataInterface related arguments to ArgumentParser and sets execute method.
     Adds positional argument 'xor'.
-    Uses switches (c, x, v, d, g).
+    Uses switches (d, v, x).
     """
     parser.set_defaults(execute=execute)
-
-    parser.add_argument(
-        "--clear-on-exit",
-        "-c",
-        action="store_true",
-        help="When True will clear the screen when script completes."
-    )
 
     parser.add_argument(
         "--clipboard-input",

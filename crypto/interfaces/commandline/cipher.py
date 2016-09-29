@@ -37,7 +37,9 @@ class CipherInterface(base_cli.DataInterface):
         decrypt=None,
         encoder=None,
         iv=None,
+        iv_gen=None,
         key=None,
+        key_gen=None,
         mode=None,
         *args,
         **kwargs
@@ -51,11 +53,11 @@ class CipherInterface(base_cli.DataInterface):
         )
         self.cipher = CIPHERS[cipher]()
         self.cipher.data = self.get_data()
-        self.cipher.key = self.get_key() if not key else key
+        self.cipher.key = self.get_key(key_gen) if not key else key
         self.decrypt = decrypt
 
         if 'iv' in self.cipher.attributes:
-            self.cipher.iv = self.get_iv() if not iv else iv
+            self.cipher.iv = self.get_iv(iv_gen) if not iv else iv
 
         if 'mode' in self.cipher.attributes and mode:
             self.cipher.set_mode(mode)
@@ -72,19 +74,19 @@ class CipherInterface(base_cli.DataInterface):
         else:
             print("DATA: {}".format(repr(self.cipher.encrypt(self.data))))
 
-    def get_key(self):
-        """If cipher can generate keys, prompts user if they want key auto-generated.
-        Otherwise initiates a prompt (value from user input).
+    def get_key(self, key_gen):
+        """Calls and returns cipher's key generation method.
+        If it doesn't exist, initiate a prompt.
         """
-        if hasattr(self.cipher, 'generate_key') and self.get_bool_from_prompt("Auto-generate key?"):
+        if key_gen and hasattr(self.cipher, 'generate_key'):
             return self.cipher.generate_key()
         return self.get_from_prompt("Please enter a valid key: ")
 
-    def get_iv(self):
-        """If cipher can generate IVs, prompts user if they want IV auto-generated.
-        Otherwise initiates a prompt (value from user input).
+    def get_iv(self, iv_gen):
+        """Calls and returns cipher's IV generation method.
+        It if doesn't exist, initiate a prompt.
         """
-        if hasattr(self.cipher, 'generate_iv') and self.get_bool_from_prompt("Auto-generate IV?"):
+        if iv_gen and hasattr(self.cipher, 'generate_iv'):
             return self.cipher.generate_iv()
         return self.get_from_prompt("Please enter a valid IV: ")
 
@@ -98,7 +100,7 @@ def execute(args):
 def add_parser_args(parser):
     """Adds Cipher related arguments to ArgumentParser and sets execute method.
     Add positional argument 'cipher'.
-    Uses optional switches (D, e, iv, k, m).
+    Uses optional switches (D, e, iv, IV, k, K, m).
     """
     parser.set_defaults(execute=execute)
 
@@ -134,9 +136,25 @@ def add_parser_args(parser):
     )
 
     parser.add_argument(
+        "--iv-gen",
+        "-IV",
+        action="store_true",
+        default=False,
+        help="Generate a random IV automatically."
+    )
+
+    parser.add_argument(
         "--key",
         "-k",
         help="Key used to encrypt or decrypt. Key size must adhere to constraints of cipher."
+    )
+
+    parser.add_argument(
+        "--key-gen",
+        "-K",
+        action="store_true",
+        default=False,
+        help="Generate a random key automatically."
     )
 
     parser.add_argument(
