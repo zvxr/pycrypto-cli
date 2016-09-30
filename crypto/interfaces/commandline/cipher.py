@@ -1,5 +1,6 @@
 
 import crypto.interfaces.commandline.base as base_cli
+import time
 
 from crypto.classes.ciphers.aes import AESCipher
 from crypto.classes.ciphers.xor import XORCipher
@@ -53,11 +54,22 @@ class CipherInterface(base_cli.DataInterface):
         )
         self.cipher = CIPHERS[cipher]()
         self.cipher.data = self.get_data()
-        self.cipher.key = self.get_key(key_gen) if not key else key
         self.decrypt = decrypt
+        self.generated_key = False
+        self.generated_iv = False
+
+        if key:
+            self.cipher.key = self.get_line_from_file(key)
+        else:
+            self.generated_key = True
+            self.cipher.key = self.get_key(key_gen)
 
         if 'iv' in self.cipher.attributes:
-            self.cipher.iv = self.get_iv(iv_gen) if not iv else iv
+            if iv:
+                self.cipher.iv = self.get_line_from_file(iv)
+            else:
+                self.generated_iv = True
+                self.cipher.iv = self.get_iv(iv_gen)
 
         if 'mode' in self.cipher.attributes and mode:
             self.cipher.set_mode(mode)
@@ -66,13 +78,15 @@ class CipherInterface(base_cli.DataInterface):
             self.cipher.set_encoding(ENCODERS[encoder])
 
     def execute(self):
-        print("KEY:  {}".format(repr(self.cipher.key)))
+        if self.generated_key:
+            self.write_to_file("{}.key".format(int(time.time())))
         if hasattr(self.cipher, 'iv'):
-            print("IV:   {}".format(repr(self.cipher.iv)))
+            self.write_to_file("{}.iv".format(int(time.time())))
+
         if self.decrypt:
-            print("DATA: {}".format(repr(self.cipher.decrypt(self.data))))
+            print("DATA: {}".format(self.cipher.decrypt(self.data)))
         else:
-            print("DATA: {}".format(repr(self.cipher.encrypt(self.data))))
+            print("DATA: {}".format(self.cipher.encrypt(self.data)))
 
     def get_key(self, key_gen):
         """Calls and returns cipher's key generation method.
@@ -132,7 +146,7 @@ def add_parser_args(parser):
     parser.add_argument(
         "--iv",
         "-iv",
-        help="Initialization vector "
+        help="Path to initialization vector used to encrypt or decrypt. IV must adhere to constraints of cipher."
     )
 
     parser.add_argument(
@@ -146,7 +160,7 @@ def add_parser_args(parser):
     parser.add_argument(
         "--key",
         "-k",
-        help="Key used to encrypt or decrypt. Key size must adhere to constraints of cipher."
+        help="Path to key used to encrypt or decrypt. Key size must adhere to constraints of cipher."
     )
 
     parser.add_argument(

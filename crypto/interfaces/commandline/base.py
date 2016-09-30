@@ -77,6 +77,13 @@ class DataInterface(Interface):
 
         return self.data
 
+    def get_line_from_file(self, path):
+        """Return the first non-empty line of a file as a string."""
+        with open(path, 'rU') as f:
+            for line in f:
+                if line.strip('/n'):
+                    return line.strip('/n')
+
     def get_from_prompt(self, prompt="Please enter value: "):
         """A very simple method for fetching data from raw input and returning."""
         return raw_input(prompt)
@@ -107,6 +114,11 @@ class DataInterface(Interface):
         stdoutdata, stderrdata = process.communicate(
             input=self.data.encode('utf-8')
         )
+
+    def write_to_file(self, path, data):
+        """Write data to file path."""
+        with open(path, 'wU') as f:
+            f.write(data)
 
 
 def execute(args):
