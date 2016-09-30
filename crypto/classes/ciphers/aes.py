@@ -32,6 +32,10 @@ class AESCipher(BlockCipher):
 
     @BlockCipher.iv.setter
     def iv(self, value):
+        # Ignore IV for ECB mode.
+        if self._mode == AES.MODE_ECB:
+            return
+
         if value is not None and len(value) != AES.block_size:
             raise AttributeError(
                 "iv must be {} bytes long.".format(AES.block_size)

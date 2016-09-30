@@ -1,5 +1,6 @@
 
 import atexit
+import getpass
 import platform
 import subprocess
 import sys
@@ -73,20 +74,18 @@ class DataInterface(Interface):
         if self.clipboard_input:
             self.set_data_from_clipboard()
         if not self.data:
-            self.set_data_from_prompt()
+            self.data = self.read_from_file()
 
         return self.data
 
-    def get_line_from_file(self, path):
-        """Return the first non-empty line of a file as a string."""
-        with open(path, 'rU') as f:
-            for line in f:
-                if line.strip('/n'):
-                    return line.strip('/n')
-
     def get_from_prompt(self, prompt="Please enter value: "):
-        """A very simple method for fetching data from raw input and returning."""
-        return raw_input(prompt)
+        """A very simple method for inputting data from getpass."""
+        return getpass.getpass(prompt)
+
+    def read_from_file(self, path):
+        """Return the first non-empty line of a file as a string."""
+        with open(path, 'rb') as f:
+            return f.read()
 
     def set_data_from_clipboard(self):
         """Sets data to contents of clipboard."""
@@ -117,7 +116,7 @@ class DataInterface(Interface):
 
     def write_to_file(self, path, data):
         """Write data to file path."""
-        with open(path, 'wU') as f:
+        with open(path, 'wb') as f:
             f.write(data)
 
 
@@ -158,5 +157,5 @@ def add_parser_args(parser):
     parser.add_argument(
         "--data",
         "-d",
-        help="Raw (string) data to manipulate."
+        help="Path to data to manipulate."
     )

@@ -58,30 +58,31 @@ class CipherInterface(base_cli.DataInterface):
         self.generated_key = False
         self.generated_iv = False
 
+        if 'mode' in self.cipher.attributes and mode:
+            self.cipher.set_mode(mode)
+
         if key:
-            self.cipher.key = self.get_line_from_file(key)
+            self.cipher.key = self.read_from_file(key)
         else:
-            self.generated_key = True
             self.cipher.key = self.get_key(key_gen)
 
         if 'iv' in self.cipher.attributes:
             if iv:
-                self.cipher.iv = self.get_line_from_file(iv)
+                self.cipher.iv = self.read_from_file(iv)
             else:
-                self.generated_iv = True
                 self.cipher.iv = self.get_iv(iv_gen)
-
-        if 'mode' in self.cipher.attributes and mode:
-            self.cipher.set_mode(mode)
 
         if encoder:
             self.cipher.set_encoding(ENCODERS[encoder])
 
     def execute(self):
+        """Performs necessary encryption/decryption and associated writing operations."""
+        epoch = "{}".format(int(time.time()))
+
         if self.generated_key:
-            self.write_to_file("{}.key".format(int(time.time())))
-        if hasattr(self.cipher, 'iv'):
-            self.write_to_file("{}.iv".format(int(time.time())))
+            self.write_to_file("{}.key".format(epoch), self.cipher.key)
+        if self.generated_iv:
+            self.write_to_file("{}.iv".format(epoch), self.cipher.iv)
 
         if self.decrypt:
             print("DATA: {}".format(self.cipher.decrypt(self.data)))
@@ -92,7 +93,8 @@ class CipherInterface(base_cli.DataInterface):
         """Calls and returns cipher's key generation method.
         If it doesn't exist, initiate a prompt.
         """
-        if key_gen and hasattr(self.cipher, 'generate_key'):
+        if not self.decrypt and key_gen and hasattr(self.cipher, 'generate_key'):
+            self.generated_key = True
             return self.cipher.generate_key()
         return self.get_from_prompt("Please enter a valid key: ")
 
@@ -100,7 +102,8 @@ class CipherInterface(base_cli.DataInterface):
         """Calls and returns cipher's IV generation method.
         It if doesn't exist, initiate a prompt.
         """
-        if iv_gen and hasattr(self.cipher, 'generate_iv'):
+        if not self.decrypt and iv_gen and hasattr(self.cipher, 'generate_iv'):
+            self.generated_iv = True
             return self.cipher.generate_iv()
         return self.get_from_prompt("Please enter a valid IV: ")
 
