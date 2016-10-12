@@ -34,13 +34,13 @@ class CipherInterface(base_cli.DataInterface):
         clear_on_exit=None,
         clipboard_input=None,
         clipboard_output=None,
-        data=None,
+        data_path=None,
         decrypt=None,
         encoder=None,
-        iv=None,
         iv_gen=None,
-        key=None,
+        iv_path=None,
         key_gen=None,
+        key_path=None,
         mode=None,
         *args,
         **kwargs
@@ -50,30 +50,18 @@ class CipherInterface(base_cli.DataInterface):
             clear_on_exit,
             clipboard_input,
             clipboard_output,
-            data
+            data_path
         )
         self.cipher = CIPHERS[cipher]()
-        self.cipher.data = self.get_data()
+        self.cipher.data = self.data
         self.decrypt = decrypt
         self.generated_key = False
         self.generated_iv = False
 
-        if 'mode' in self.cipher.attributes and mode:
-            self.cipher.set_mode(mode)
-
-        if key:
-            self.cipher.key = self.read_from_file(key)
-        else:
-            self.cipher.key = self.get_key(key_gen)
-
-        if 'iv' in self.cipher.attributes:
-            if iv:
-                self.cipher.iv = self.read_from_file(iv)
-            else:
-                self.cipher.iv = self.get_iv(iv_gen)
-
-        if encoder:
-            self.cipher.set_encoding(ENCODERS[encoder])
+        self.set_mode(mode)
+        self.set_key(key_gen, key_path)
+        self.set_iv(iv_gen, iv_path)
+        self.set_encoder(encoder)
 
     def execute(self):
         """Performs necessary encryption/decryption and associated writing operations."""
@@ -89,23 +77,49 @@ class CipherInterface(base_cli.DataInterface):
         else:
             print("DATA: {}".format(self.cipher.encrypt(self.data)))
 
-    def get_key(self, key_gen):
-        """Calls and returns cipher's key generation method.
-        If it doesn't exist, initiate a prompt.
+    def set_encoder(self, encoder):
+        """Set the cipher's encoder."""
+        if encoder:
+            self.cipher.set_encoding(ENCODERS[encoder])
+
+    def set_key(self, key_gen, key_path):
+        """Determine and set cipher's key. Reading file `key_path` takes highest
+        priority. When `key_gen` is True, will generate a key instead. Lowest
+        priority is to fetch the key from a commandline prompt.
         """
+        if key_path:
+            self.cipher.key = self.read_from_file(key_path)
+            return
+
         if not self.decrypt and key_gen and hasattr(self.cipher, 'generate_key'):
             self.generated_key = True
-            return self.cipher.generate_key()
-        return self.get_from_prompt("Please enter a valid key: ")
+            self.cipher.key = self.cipher.generate_key()
+            return
 
-    def get_iv(self, iv_gen):
-        """Calls and returns cipher's IV generation method.
-        It if doesn't exist, initiate a prompt.
+        self.cipher.key = self.get_from_prompt("Please enter a valid key: ")
+
+    def set_iv(self, iv_gen, iv_path):
+        """Determine and set cipher's IV if appropriate. Reading file `iv_path`
+        takes highest priority. When `iv_gen` is True, will generate an IV instead.
+        Lowest priority is to fetch the IV from a commandline prompt.
         """
+        if 'iv' not in self.cipher.attributes:
+            return
+
+        if iv_path:
+            self.cipher.iv = self.read_from_file(iv_path)
+            return
+
         if not self.decrypt and iv_gen and hasattr(self.cipher, 'generate_iv'):
             self.generated_iv = True
             return self.cipher.generate_iv()
-        return self.get_from_prompt("Please enter a valid IV: ")
+
+        self.cipher.iv = self.get_from_prompt("Please enter a valid IV: ")
+
+    def set_mode(self, mode):
+        """Set the cipher's mode if appropriate."""
+        if 'mode' in self.cipher.attributes and mode:
+            self.cipher.set_mode(mode)
 
 
 def execute(args):
@@ -149,6 +163,7 @@ def add_parser_args(parser):
     parser.add_argument(
         "--iv",
         "-iv",
+        dest="iv_path",
         help="Path to initialization vector used to encrypt or decrypt. IV must adhere to constraints of cipher."
     )
 
@@ -163,6 +178,7 @@ def add_parser_args(parser):
     parser.add_argument(
         "--key",
         "-k",
+        dest="key_path",
         help="Path to key used to encrypt or decrypt. Key size must adhere to constraints of cipher."
     )
 
