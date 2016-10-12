@@ -31,10 +31,10 @@ class CipherInterface(base_cli.DataInterface):
     def __init__(
         self,
         cipher,
-        clear_on_exit=None,
         clipboard_input=None,
         clipboard_output=None,
-        data_path=None,
+        data_input_path=None,
+        data_output_path=None,
         decrypt=None,
         encoder=None,
         iv_gen=None,
@@ -47,10 +47,10 @@ class CipherInterface(base_cli.DataInterface):
     ):
         """Sets up the cipher itself when initializing."""
         super(CipherInterface, self).__init__(
-            clear_on_exit,
             clipboard_input,
             clipboard_output,
-            data_path
+            data_input_path,
+            data_output_path
         )
         self.cipher = CIPHERS[cipher]()
         self.cipher.data = self.data
@@ -73,9 +73,9 @@ class CipherInterface(base_cli.DataInterface):
             self.write_to_file("{}.iv".format(epoch), self.cipher.iv)
 
         if self.decrypt:
-            print("DATA: {}".format(self.cipher.decrypt(self.data)))
+            self.store_data(self.cipher.decrypt(self.data))
         else:
-            print("DATA: {}".format(self.cipher.encrypt(self.data)))
+            self.store_data(self.cipher.encrypt(self.data))
 
     def set_encoder(self, encoder):
         """Set the cipher's encoder."""
