@@ -131,7 +131,7 @@ def execute(args):
 def add_parser_args(parser):
     """Adds Cipher related arguments to ArgumentParser and sets execute method.
     Add positional argument 'cipher'.
-    Uses optional switches (D, e, iv, IV, k, K, m).
+    Uses optional switches (d, e, iv, IV, k, K, m).
     """
     parser.set_defaults(execute=execute)
 
@@ -145,7 +145,7 @@ def add_parser_args(parser):
 
     parser.add_argument(
         "--decrypt",
-        "-D",
+        "-d",
         action="store_true",
         default=False,
         help="When True will decrypt data. When False will encrypt data."

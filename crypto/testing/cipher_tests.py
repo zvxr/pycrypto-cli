@@ -173,13 +173,11 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
     def test_mode_property(self):
         cipher = aes_cipher.AESCipher()  # Expects Cipher FeedBack.
         self.assertEqual(cipher._mode, AES.MODE_CFB)
-        self.assertEqual(cipher.mode, AES.MODE_CFB)
 
-        cipher.mode = AES.MODE_ECB
+        cipher.set_mode('ECB')
         self.assertEqual(cipher._mode, AES.MODE_ECB)
-        self.assertEqual(cipher.mode, AES.MODE_ECB)
 
-        self.assertRaises(AttributeError, setattr, cipher, 'mode', AES.MODE_PGP)
+        self.assertRaises(AttributeError, cipher.set_mode, 'PGP')
 
     def test_generate_iv(self):
         cipher = aes_cipher.AESCipher()
@@ -201,17 +199,17 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
     def test_get_cipher(self, aes_new_mock):
         cipher = aes_cipher.AESCipher(
             key="wruff wruff meow",
-            iv="meow wruff wruff",
-            mode=AES.MODE_CFB
+            iv="meow wruff wruff"
         )
+        cipher.set_mode('CFB')
         self.assertEqual(cipher._get_cipher(), aes_new_mock.return_value)
         aes_new_mock.assert_called_with("wruff wruff meow", AES.MODE_CFB, "meow wruff wruff")
 
         cipher = aes_cipher.AESCipher(
             key="wruff wruff meow",
-            iv="meow wruff wruff",
-            mode=AES.MODE_ECB
+            iv="meow wruff wruff"
         )
+        cipher.set_mode('ECB')
         self.assertEqual(cipher._get_cipher(), aes_new_mock.return_value)
         aes_new_mock.assert_called_with("wruff wruff meow", AES.MODE_ECB)
 
@@ -241,26 +239,28 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
 
     def test_encryption_cbc(self):
         """This will actually execute encrypting/decrypting data for CBC mode."""
-        self._test_encryption(AES.MODE_CBC)
+        self._test_encryption('CBC')
 
     def test_encryption_cfb(self):
         """This will actually execute encrypting/decrypting data for CFB mode."""
-        self._test_encryption(AES.MODE_CFB)
+        self._test_encryption('CFB')
 
     def test_encryption_ecb(self):
         """This will actually execute encrypting/decrypting data for ECB mode."""
-        self._test_encryption(AES.MODE_ECB)
+        self._test_encryption('ECB')
 
     def test_encryption_ofb(self):
         """This will actually execute encrypting/decrypting data for OFB mode."""
-        self._test_encryption(AES.MODE_OFB)
+        self._test_encryption('OFB')
 
     def _test_encryption(self, mode):
         """This will actually execute encrypting/decrypting data.
         Key and IV generation is derived entirely from class staticmethods.
         """
-        cipher = aes_cipher.AESCipher(mode=mode)
+        cipher = aes_cipher.AESCipher()
         cipher.iv = cipher.generate_iv()
+        if mode:
+            cipher.set_mode(mode)
         random_device = random.Random.new()
 
         # Test various key sizes.

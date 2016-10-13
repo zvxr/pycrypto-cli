@@ -95,7 +95,7 @@ class DataInterface(Interface):
         is to fetch from commandline prompt.
         """
         if clipboard_input:
-            self.data = get_data_from_clipboard()
+            self.data = self.get_data_from_clipboard()
             return
 
         if data_input_path:
@@ -110,7 +110,7 @@ class DataInterface(Interface):
         priority. Lowest priority is to print to screen.
         """
         if clipboard_output:
-            self.store_data = set_data_output
+            self.store_data = self.store_data_in_clipboard
             return
 
         if data_output_path:
@@ -143,7 +143,7 @@ def execute(args):
 
 def add_parser_args(parser):
     """Adds DataInterface related arguments to ArgumentParser and sets execute method.
-    Uses switches (d, o, v, x).
+    Uses switches (i, o, v, x).
     """
     parser.set_defaults(execute=execute)
 
@@ -162,8 +162,8 @@ def add_parser_args(parser):
     )
 
     parser.add_argument(
-        "--data",
-        "-d",
+        "--input",
+        "-i",
         dest="data_input_path",
         help="Path to data to manipulate."
     )
