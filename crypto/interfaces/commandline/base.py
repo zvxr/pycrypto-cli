@@ -1,7 +1,7 @@
 
-import atexit
+from __future__ import print_function
+
 import getpass
-import platform
 import subprocess
 import sys
 import termios
@@ -19,31 +19,20 @@ class Interface(object):
 
 
 class DataInterface(Interface):
+    """Base class for commandline interfaces that deal with data."""
     def __init__(
         self,
-        clear_on_exit=None,
         clipboard_input=None,
         clipboard_output=None,
-        data=None,
+        data_input_path=None,
+        data_output_path=None,
         *args,
         **kwargs
     ):
         super(DataInterface, self).__init__()
 
-        self.clear_on_exit = clear_on_exit
-        self.clipboard_input = clipboard_input
-        self.clipboard_output = clipboard_output
-        self.data = data
-
-        if self.clear_on_exit:
-            atexit.register(self._clear_screen)
-
-    def _clear_screen(self):
-        """Registers an OS clear screen command on application exit."""
-        if platform.system() == "Windows":
-            os.system("cls")
-        else:
-            os.system("clear")
+        self.set_data_input(clipboard_input, data_input_path)
+        self.set_data_output(clipboard_input, data_output_path)
 
     def _get_char(self):
         """Fetch and return a single character input from terminal."""
@@ -69,32 +58,16 @@ class DataInterface(Interface):
                 print("\r{} {}".format(prompt, char))
                 return True if char == "Y" else False
 
-    def get_data(self):
-        """Sets data-- prioritizes clipboard, but also will get from prompt. Returns value."""
-        if self.clipboard_input:
-            self.set_data_from_clipboard()
-        if not self.data:
-            self.data = self.read_from_file()
-
-        return self.data
-
-    def get_from_prompt(self, prompt="Please enter value: "):
-        """A very simple method for inputting data from getpass."""
-        return getpass.getpass(prompt)
-
-    def read_from_file(self, path):
-        """Return the first non-empty line of a file as a string."""
-        with open(path, 'rb') as f:
-            return f.read()
-
-    def set_data_from_clipboard(self):
+    def get_data_from_clipboard(self):
         """Sets data to contents of clipboard."""
         process = subprocess.Popen(['pbpaste'], stdout=subprocess.PIPE, close_fds=True)
         stdout, stderr = process.communicate()
-        self.data = stdout.decode('utf-8')
+        return stdout.decode('utf-8')
 
-    def set_data_from_prompt(self):
-        """Prompts for raw input and sets data."""
+    def get_data_from_prompt(self):
+        """Prompts for raw input and returns once two successive newlines are
+        entered. The newlines are stripped on exiting.
+        """
         data = ""
         print("Please type data. Press ENTER twice or CTRL+C to end.")
 
@@ -105,13 +78,52 @@ class DataInterface(Interface):
             except KeyboardInterrupt:
                 break
 
-        self.data = data.rstrip("\n")
+        return data.rstrip("\n")
 
-    def store_data_in_clipboard(self):
+    def get_from_prompt(self, prompt="Please enter value: "):
+        """A very simple method for inputting data from getpass."""
+        return getpass.getpass(prompt)
+
+    def read_from_file(self, path):
+        """Return the first non-empty line of a file as a string."""
+        with open(path, 'rb') as f:
+            return f.read()
+
+    def set_data_input(self, clipboard_input, data_input_path):
+        """Determine and set data. Reading from clipboard takes highest priority.
+        Reading from file `data_input_path` takes next highest priority. Lowest priority
+        is to fetch from commandline prompt.
+        """
+        if clipboard_input:
+            self.data = self.get_data_from_clipboard()
+            return
+
+        if data_input_path:
+            self.data = self.read_from_file(data_input_path)
+            return
+
+        self.data = self.get_data_from_prompt()
+
+    def set_data_output(self, clipboard_output, data_output_path):
+        """Stores the method to be called for generating store_data. Writing to clipboard
+        takes highest priority. Writing to file `data_output_path` takes next highest
+        priority. Lowest priority is to print to screen.
+        """
+        if clipboard_output:
+            self.store_data = self.store_data_in_clipboard
+            return
+
+        if data_output_path:
+            self.store_data = lambda data: self.write_to_file(data_output_path, data)
+            return
+
+        self.store_data = lambda data: print("DATA: {}".format(data))
+
+    def store_data_in_clipboard(self, data):
         """Store data in clipboard."""
         process = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
         stdoutdata, stderrdata = process.communicate(
-            input=self.data.encode('utf-8')
+            input=data.encode('utf-8')
         )
 
     def write_to_file(self, path, data):
@@ -126,17 +138,12 @@ def execute(args):
     will simply echo commands in a debug fashion.
     """
     interface = DataInterface(**vars(args))
-    data = interface.get_data()
-
-    print "DATA: {}".format(data)
-
     interface.cleanup()
 
 
 def add_parser_args(parser):
     """Adds DataInterface related arguments to ArgumentParser and sets execute method.
-    Adds positional argument 'xor'.
-    Uses switches (d, v, x).
+    Uses switches (i, o, v, x).
     """
     parser.set_defaults(execute=execute)
 
@@ -155,7 +162,15 @@ def add_parser_args(parser):
     )
 
     parser.add_argument(
-        "--data",
-        "-d",
+        "--input",
+        "-i",
+        dest="data_input_path",
         help="Path to data to manipulate."
+    )
+
+    parser.add_argument(
+        "--output",
+        "-o",
+        dest="data_output_path",
+        help="Path to file to write data out to."
     )
