@@ -1,6 +1,7 @@
 
 from crypto.classes.encoders.base import Encoder
 from Crypto import Random
+from Crypto.Util import Counter
 
 
 class CryptoCipher(object):
@@ -64,10 +65,11 @@ class BlockCipher(CryptoCipher):
     default_mode = None
     supported_modes = {}
 
-    def __init__(self, key=None, iv=None):
+    def __init__(self, key=None, iv=None, initial_value=1):
         super(BlockCipher, self).__init__(key)
         self._mode = self.default_mode
         self._iv = iv
+        self.initial_value = initial_value
 
     def __repr__(self):
         return "{} key {} set, IV {} set.".format(
@@ -85,6 +87,12 @@ class BlockCipher(CryptoCipher):
     @iv.setter
     def iv(self, value):
         self._iv = value
+
+    def _get_counter(self):
+        """Returns a stateful Counter instance of 128 bits.
+        No prefix or suffix is applied.
+        """
+        return Counter(128, initial_value=self.initial_value)
 
     def _get_pad_char(self, ignore=None):
         """Return a random character to pad text that does not match ignore."""

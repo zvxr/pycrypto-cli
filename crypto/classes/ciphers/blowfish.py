@@ -1,24 +1,25 @@
 
 from crypto.classes.ciphers.base import BlockCipher
 from Crypto import Random
-from Crypto.Cipher import AES
+from Crypto.Cipher import Blowfish
 
 
-class AESCipher(BlockCipher):
-    """AES symmetric cipher."""
+class BlowfishCipher(BlockCipher):
+    """Blowfish symmetric block cipher."""
     attributes = ('key', 'iv', 'mode')
-    default_mode = AES.MODE_CFB
+    default_mode = Blowfish.MODE_ECB
     supported_modes = {
-        'CBC': AES.MODE_CBC,
-        'CFB': AES.MODE_CFB,
-        'CTR': AES.MODE_CTR,
-        'ECB': AES.MODE_ECB,
-        'OFB': AES.MODE_OFB
+        'CBC': Blowfish.MODE_CBC,
+        'CFB': Blowfish.MODE_CFB,
+        'CTR': Blowfish.MODE_CTR,
+        'ECB': Blowfish.MODE_ECB,
+        'OFB': Blowfish.MODE_OFB
     }
 
     def __init__(self, key=None, iv=None, initial_value=1):
         """initial_value is only applied to CTR."""
-        super(AESCipher, self).__init__(key, iv, initial_value)
+        super(BlowfishCipher, self).__init__(key, iv)
+        self.initial_value = initial_value
 
     @BlockCipher.key.setter
     def key(self, value):
@@ -39,6 +40,12 @@ class AESCipher(BlockCipher):
                 "iv must be {} bytes long.".format(AES.block_size)
             )
         self._iv = value
+
+    def _get_counter(self):
+        """Returns a stateful Counter instance of 128 bits to work
+        with AES key sizes. No prefix or suffix is applied.
+        """
+        return Counter(128, initial_value=self.initial_value)
 
     def _get_cipher(self):
         """Return a Pycrypto AES cipher instance.

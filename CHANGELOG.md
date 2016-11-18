@@ -1,6 +1,10 @@
 pycrypto-cli change log
 =======================
 
+0.3.0 (2016-11-17)
+------------------
+- Add Blowfish cipher.
+
 0.2.0 (2016-10-11)
 ------------------
 - Add file support to interface. Clean up general implementation.
