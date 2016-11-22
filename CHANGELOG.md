@@ -4,6 +4,7 @@ pycrypto-cli change log
 0.3.0 (2016-11-17)
 ------------------
 - Add Blowfish cipher.
+- Migrate shared attributes/functionality to parent classes.
 
 0.2.0 (2016-10-11)
 ------------------
