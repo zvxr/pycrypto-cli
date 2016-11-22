@@ -7,6 +7,7 @@ from Crypto.Cipher import Blowfish
 class BlowfishCipher(BlockCipher):
     """Blowfish symmetric block cipher."""
     attributes = ('key', 'iv', 'mode')
+    block_size = Blowfish.block_size
     default_mode = Blowfish.MODE_ECB
     supported_modes = {
         'CBC': Blowfish.MODE_CBC,
@@ -35,9 +36,9 @@ class BlowfishCipher(BlockCipher):
         if self._mode == Blowfish.MODE_ECB:
             return
 
-        if value is not None and len(value) != Blowfish.block_size:
+        if value is not None and len(value) != self.block_size:
             raise AttributeError(
-                "iv must be {} bytes long.".format(Blowfish.block_size)
+                "iv must be {} bytes long.".format(self.block_size)
             )
         self._iv = value
 
@@ -51,24 +52,6 @@ class BlowfishCipher(BlockCipher):
             return Blowfish.new(self.key, self._mode, counter=self._get_counter())
         else:
             return Blowfish.new(self.key, self._mode, self.iv)
-
-    def encrypt(self, plaintext):
-        """Generate cipher, encrypt, and encode data."""
-        blowfish_cipher = self._get_cipher()
-        padded_plaintext = self.pad(plaintext, Blowfish.block_size)
-        ciphertext = blowfish_cipher.encrypt(padded_plaintext)
-        return self._encode(ciphertext)
-
-    def decrypt(self, ciphertext):
-        """Generate cipher, decode, and decrypt data."""
-        blowfish_cipher = self._get_cipher()
-        decoded_ciphertext = self._decode(ciphertext)
-        plaintext = blowfish_cipher.decrypt(decoded_ciphertext)
-        return self.unpad(plaintext)
-
-    def generate_iv(self):
-        """Randomly generate an IV byte string for various modes of Blowfish."""
-        return Random.new().read(Blowfish.block_size)
 
     def generate_key(self, key_size=56):
         """Randomly generate a key of byte size `key_size`. Must be between 4 and 56."""

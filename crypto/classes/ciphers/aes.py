@@ -7,6 +7,7 @@ from Crypto.Cipher import AES
 class AESCipher(BlockCipher):
     """AES symmetric cipher."""
     attributes = ('key', 'iv', 'mode')
+    block_size = AES.block_size
     default_mode = AES.MODE_CFB
     supported_modes = {
         'CBC': AES.MODE_CBC,
@@ -34,9 +35,9 @@ class AESCipher(BlockCipher):
         if self._mode == AES.MODE_ECB:
             return
 
-        if value is not None and len(value) != AES.block_size:
+        if value is not None and len(value) != self.block_size:
             raise AttributeError(
-                "iv must be {} bytes long.".format(AES.block_size)
+                "iv must be {} bytes long.".format(self.block_size)
             )
         self._iv = value
 
@@ -50,24 +51,6 @@ class AESCipher(BlockCipher):
             return AES.new(self.key, self._mode, counter=self._get_counter())
         else:
             return AES.new(self.key, self._mode, self.iv)
-
-    def encrypt(self, plaintext):
-        """Generate cipher, encrypt, and encode data."""
-        aes_cipher = self._get_cipher()
-        padded_plaintext = self.pad(plaintext, AES.block_size)
-        ciphertext = aes_cipher.encrypt(padded_plaintext)
-        return self._encode(ciphertext)
-
-    def decrypt(self, ciphertext):
-        """Generate cipher, decode, and decrypt data."""
-        aes_cipher = self._get_cipher()
-        decoded_ciphertext = self._decode(ciphertext)
-        plaintext = aes_cipher.decrypt(decoded_ciphertext)
-        return self.unpad(plaintext)
-
-    def generate_iv(self):
-        """Randomly generate an IV byte string for various modes of AES."""
-        return Random.new().read(AES.block_size)
 
     def generate_key(self, key_size=16):
         """Randomly generate a key of byte size `key_size`. Must be 16, 24, or 32."""

@@ -115,7 +115,8 @@ class CipherInterface(base_cli.DataInterface):
 
         if not self.decrypt and iv_gen and hasattr(self.cipher, 'generate_iv'):
             self.generated_iv = True
-            return self.cipher.generate_iv()
+            self.cipher.iv = self.cipher.generate_iv()
+            return
 
         self.cipher.iv = self.get_from_prompt("Please enter a valid IV: ")
 

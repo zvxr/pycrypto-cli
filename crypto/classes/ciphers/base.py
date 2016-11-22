@@ -62,6 +62,7 @@ class CryptoCipher(object):
 class BlockCipher(CryptoCipher):
     """Base Class for Block Ciphers."""
     attributes = ('key', 'iv')
+    block_size = 0
     default_mode = None
     supported_modes = {}
 
@@ -101,6 +102,24 @@ class BlockCipher(CryptoCipher):
             char = random_device.read(1)
             if char != ignore:
                 return char
+
+    def decrypt(self, ciphertext):
+        """Generate cipher, decode, and decrypt data."""
+        cipher = self._get_cipher()
+        decoded_ciphertext = self._decode(ciphertext)
+        plaintext = cipher.decrypt(decoded_ciphertext)
+        return self.unpad(plaintext)
+
+    def encrypt(self, plaintext):
+        """Generate cipher, encrypt, and encode data."""
+        cipher = self._get_cipher()
+        padded_plaintext = self.pad(plaintext, self.block_size)
+        ciphertext = cipher.encrypt(padded_plaintext)
+        return self._encode(ciphertext)
+
+    def generate_iv(self):
+        """Randomly generate an IV byte string of the object's block size."""
+        return Random.new().read(self.block_size)
 
     def pad(self, text, block_size):
         """Left pad text with a random character. Always add padding."""
