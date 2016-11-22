@@ -9,6 +9,7 @@ class AESCipher(BlockCipher):
     attributes = ('key', 'iv', 'mode')
     block_size = AES.block_size
     default_mode = AES.MODE_CFB
+    modes_ignore_iv = (AES.MODE_ECB,)
     supported_modes = {
         'CBC': AES.MODE_CBC,
         'CFB': AES.MODE_CFB,
@@ -31,8 +32,7 @@ class AESCipher(BlockCipher):
 
     @BlockCipher.iv.setter
     def iv(self, value):
-        # Ignore IV for ECB mode.
-        if self._mode == AES.MODE_ECB:
+        if self.ignore_iv:
             return
 
         if value is not None and len(value) != self.block_size:

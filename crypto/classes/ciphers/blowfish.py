@@ -9,6 +9,7 @@ class BlowfishCipher(BlockCipher):
     attributes = ('key', 'iv', 'mode')
     block_size = Blowfish.block_size
     default_mode = Blowfish.MODE_ECB
+    modes_ignore_iv = (Blowfish.MODE_ECB,)
     supported_modes = {
         'CBC': Blowfish.MODE_CBC,
         'CFB': Blowfish.MODE_CFB,
@@ -32,8 +33,7 @@ class BlowfishCipher(BlockCipher):
 
     @BlockCipher.iv.setter
     def iv(self, value):
-        # Ignore IV for ECB mode.
-        if self._mode == Blowfish.MODE_ECB:
+        if self.ignore_iv:
             return
 
         if value is not None and len(value) != self.block_size:

@@ -93,13 +93,12 @@ class CipherInterface(base_cli.DataInterface):
         if key_path:
             self.cipher.key = self.read_from_file(key_path)
             return
-
-        if not self.decrypt and key_gen and hasattr(self.cipher, 'generate_key'):
+        elif not self.decrypt and key_gen and hasattr(self.cipher, 'generate_key'):
             self.generated_key = True
             self.cipher.key = self.cipher.generate_key()
             return
-
-        self.cipher.key = self.get_from_prompt("Please enter a valid key: ")
+        else:
+            self.cipher.key = self.get_from_prompt("Please enter a valid key: ")
 
     def set_iv(self, iv_gen, iv_path):
         """Determine and set cipher's IV if appropriate. Reading file `iv_path`
@@ -108,22 +107,20 @@ class CipherInterface(base_cli.DataInterface):
         """
         if 'iv' not in self.cipher.attributes:
             return
-
-        if iv_path:
-            self.cipher.iv = self.read_from_file(iv_path)
+        elif self.cipher.ignore_iv:
             return
-
-        if not self.decrypt and iv_gen and hasattr(self.cipher, 'generate_iv'):
+        elif iv_path:
+            self.cipher.iv = self.read_from_file(iv_path)
+        elif not self.decrypt and iv_gen and hasattr(self.cipher, 'generate_iv'):
             self.generated_iv = True
             self.cipher.iv = self.cipher.generate_iv()
-            return
-
-        self.cipher.iv = self.get_from_prompt("Please enter a valid IV: ")
+        else:
+            self.cipher.iv = self.get_from_prompt("Please enter a valid IV: ")
 
     def set_mode(self, mode):
         """Set the cipher's mode if appropriate."""
         if 'mode' in self.cipher.attributes and mode:
-            self.cipher.set_mode(mode)
+            self.cipher.mode = mode
 
 
 def execute(args):

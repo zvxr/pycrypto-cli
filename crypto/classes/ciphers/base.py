@@ -64,6 +64,7 @@ class BlockCipher(CryptoCipher):
     attributes = ('key', 'iv')
     block_size = 0
     default_mode = None
+    modes_ignore_iv = ()
     supported_modes = {}
 
     def __init__(self, key=None, iv=None, initial_value=1):
@@ -80,14 +81,39 @@ class BlockCipher(CryptoCipher):
         )
 
     @property
+    def ignore_iv(self):
+        """This will return a Boolean on if the IV when getting or setting should
+        be ignored.
+        """
+        return self.mode in self.modes_ignore_iv
+
+    @property
     def iv(self):
+        if self.ignore_iv:
+            return
+
         if self._iv is not None:
             return self._iv
+
         raise AttributeError("IV is not set.")
 
     @iv.setter
     def iv(self, value):
+        if self.ignore_iv:
+            return
+
         self._iv = value
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, value):
+        """Set chaining mode by mapping mode (string) to object's supported modes."""
+        if value not in self.supported_modes:
+            raise AttributeError("Chaining mode not supported.")
+        self._mode = self.supported_modes[value]
 
     def _get_counter(self):
         """Returns a stateful Counter instance of 128 bits.
@@ -126,12 +152,6 @@ class BlockCipher(CryptoCipher):
         pad_char = self._get_pad_char(ignore=text[0])
         pad_size = (block_size - len(text)) % block_size or block_size
         return (pad_char * pad_size) + text
-
-    def set_mode(self, mode):
-        """Set chaining mode by mapping mode (string) to object's supported modes."""
-        if mode not in self.supported_modes:
-            raise AttributeError("Chaining mode not supported.")
-        self._mode = self.supported_modes[mode]
 
     def unpad(self, text):
         """Strip padding from text. It is expected that the `pad`
