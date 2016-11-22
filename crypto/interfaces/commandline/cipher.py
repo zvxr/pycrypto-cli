@@ -3,16 +3,19 @@ import crypto.interfaces.commandline.base as base_cli
 import time
 
 from crypto.classes.ciphers.aes import AESCipher
+from crypto.classes.ciphers.blowfish import BlowfishCipher
 from crypto.classes.ciphers.xor import XORCipher
 from crypto.classes.encoders.base import NullEncoder
 from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
-from Crypto.Cipher import AES
 
 
-CHAINING_MODE_CHOICES = set(AESCipher.supported_modes.keys())
+CHAINING_MODE_CHOICES = set(
+    AESCipher.supported_modes.keys() + BlowfishCipher.supported_modes.keys()
+)
 
 CIPHERS = {
     'AES': AESCipher,
+    'BLOWFISH': BlowfishCipher,
     'XOR': XORCipher
 }
 CIPHER_CHOICES = CIPHERS.keys()
