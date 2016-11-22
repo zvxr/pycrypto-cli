@@ -65,6 +65,7 @@ class BlockCipher(CryptoCipher):
     block_size = 0
     default_mode = None
     modes_ignore_iv = ()
+    modes_use_counter = ()
     supported_modes = {}
 
     def __init__(self, key=None, iv=None, initial_value=1):
@@ -114,6 +115,12 @@ class BlockCipher(CryptoCipher):
         if value not in self.supported_modes:
             raise AttributeError("Chaining mode not supported.")
         self._mode = self.supported_modes[value]
+
+    @property
+    def use_counter(self):
+        """This will return a Boolean on if a counter is necessary (based on mode).
+        """
+        return self.mode in self.modes_use_counter
 
     def _get_counter(self):
         """Returns a stateful Counter instance of 128 bits.

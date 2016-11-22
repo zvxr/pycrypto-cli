@@ -10,6 +10,7 @@ class AESCipher(BlockCipher):
     block_size = AES.block_size
     default_mode = AES.MODE_CFB
     modes_ignore_iv = (AES.MODE_ECB,)
+    modes_use_counter = (AES.MODE_CTR,)
     supported_modes = {
         'CBC': AES.MODE_CBC,
         'CFB': AES.MODE_CFB,
@@ -45,9 +46,9 @@ class AESCipher(BlockCipher):
         """Return a Pycrypto AES cipher instance.
         `key`, `mode` and depending on mode `iv` must be set.
         """
-        if self._mode == AES.MODE_ECB:
+        if self.ignore_iv:
             return AES.new(self.key, self._mode)
-        elif self._mode == AES.MODE_CTR:
+        elif self.use_counter:
             return AES.new(self.key, self._mode, counter=self._get_counter())
         else:
             return AES.new(self.key, self._mode, self.iv)
