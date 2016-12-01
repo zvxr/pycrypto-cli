@@ -122,11 +122,15 @@ class BlockCipher(CryptoCipher):
         """
         return self.mode in self.modes_use_counter
 
+    def _get_cipher(self):
+        """This shoudld be overridden by inheriting class."""
+        raise NotImplemented("Block Cipher not specified.")
+
     def _get_counter(self):
         """Returns a stateful Counter instance of 128 bits.
         No prefix or suffix is applied.
         """
-        return Counter(128, initial_value=self.initial_value)
+        return Counter.new(128, initial_value=self.initial_value)
 
     def _get_pad_char(self, ignore=None):
         """Return a random character to pad text that does not match ignore."""

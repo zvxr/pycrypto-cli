@@ -9,12 +9,12 @@ class BlowfishCipher(BlockCipher):
     attributes = ('key', 'iv', 'mode')
     block_size = Blowfish.block_size
     default_mode = Blowfish.MODE_ECB
-    modes_ignore_iv = (Blowfish.MODE_ECB,)
+    modes_ignore_iv = (Blowfish.MODE_CTR, Blowfish.MODE_ECB)
     modes_use_counter = (Blowfish.MODE_CTR,)
     supported_modes = {
         'CBC': Blowfish.MODE_CBC,
         'CFB': Blowfish.MODE_CFB,
-        'CTR': Blowfish.MODE_CTR,
+        #'CTR': Blowfish.MODE_CTR,  # Does not work.
         'ECB': Blowfish.MODE_ECB,
         'OFB': Blowfish.MODE_OFB
     }
@@ -47,10 +47,10 @@ class BlowfishCipher(BlockCipher):
         """Return a Pycrypto Blowfish cipher instance.
         `key`, `mode` and depending on mode `iv` must be set.
         """
-        if self.ignore_iv:
-            return Blowfish.new(self.key, self._mode)
-        elif self.use_counter:
+        if self.use_counter:
             return Blowfish.new(self.key, self._mode, counter=self._get_counter())
+        elif self.ignore_iv:
+            return Blowfish.new(self.key, self._mode)
         else:
             return Blowfish.new(self.key, self._mode, self.iv)
 
