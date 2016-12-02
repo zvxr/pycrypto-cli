@@ -3,16 +3,21 @@ import crypto.interfaces.commandline.base as base_cli
 import time
 
 from crypto.classes.ciphers.aes import AESCipher
+from crypto.classes.ciphers.blowfish import BlowfishCipher
+from crypto.classes.ciphers.cast import CASTCipher
 from crypto.classes.ciphers.xor import XORCipher
 from crypto.classes.encoders.base import NullEncoder
 from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
-from Crypto.Cipher import AES
 
 
-CHAINING_MODE_CHOICES = set(AESCipher.supported_modes.keys())
+CHAINING_MODE_CHOICES = set(
+    AESCipher.supported_modes.keys() + BlowfishCipher.supported_modes.keys()
+)
 
 CIPHERS = {
     'AES': AESCipher,
+    'BLOWFISH': BlowfishCipher,
+    'CAST': CASTCipher,
     'XOR': XORCipher
 }
 CIPHER_CHOICES = CIPHERS.keys()
@@ -90,13 +95,12 @@ class CipherInterface(base_cli.DataInterface):
         if key_path:
             self.cipher.key = self.read_from_file(key_path)
             return
-
-        if not self.decrypt and key_gen and hasattr(self.cipher, 'generate_key'):
+        elif not self.decrypt and key_gen and hasattr(self.cipher, 'generate_key'):
             self.generated_key = True
             self.cipher.key = self.cipher.generate_key()
             return
-
-        self.cipher.key = self.get_from_prompt("Please enter a valid key: ")
+        else:
+            self.cipher.key = self.get_from_prompt("Please enter a valid key: ")
 
     def set_iv(self, iv_gen, iv_path):
         """Determine and set cipher's IV if appropriate. Reading file `iv_path`
@@ -105,21 +109,20 @@ class CipherInterface(base_cli.DataInterface):
         """
         if 'iv' not in self.cipher.attributes:
             return
-
-        if iv_path:
-            self.cipher.iv = self.read_from_file(iv_path)
+        elif self.cipher.ignore_iv:
             return
-
-        if not self.decrypt and iv_gen and hasattr(self.cipher, 'generate_iv'):
+        elif iv_path:
+            self.cipher.iv = self.read_from_file(iv_path)
+        elif not self.decrypt and iv_gen and hasattr(self.cipher, 'generate_iv'):
             self.generated_iv = True
-            return self.cipher.generate_iv()
-
-        self.cipher.iv = self.get_from_prompt("Please enter a valid IV: ")
+            self.cipher.iv = self.cipher.generate_iv()
+        else:
+            self.cipher.iv = self.get_from_prompt("Please enter a valid IV: ")
 
     def set_mode(self, mode):
         """Set the cipher's mode if appropriate."""
         if 'mode' in self.cipher.attributes and mode:
-            self.cipher.set_mode(mode)
+            self.cipher.mode = mode
 
 
 def execute(args):
