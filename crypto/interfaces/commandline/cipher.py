@@ -4,6 +4,7 @@ import time
 
 from crypto.classes.ciphers.aes import AESCipher
 from crypto.classes.ciphers.blowfish import BlowfishCipher
+from crypto.classes.ciphers.cast import CASTCipher
 from crypto.classes.ciphers.xor import XORCipher
 from crypto.classes.encoders.base import NullEncoder
 from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
@@ -16,6 +17,7 @@ CHAINING_MODE_CHOICES = set(
 CIPHERS = {
     'AES': AESCipher,
     'BLOWFISH': BlowfishCipher,
+    'CAST': CASTCipher,
     'XOR': XORCipher
 }
 CIPHER_CHOICES = CIPHERS.keys()
