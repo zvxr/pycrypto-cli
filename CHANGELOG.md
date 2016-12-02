@@ -4,6 +4,8 @@ pycrypto-cli change log
 0.3.0 (2016-11-17)
 ------------------
 - Add Blowfish cipher.
+- Add CAST cipher.
+- Fix how counters are used for block cipher CTR mode.
 - Migrate shared attributes/functionality to parent classes.
 
 0.2.0 (2016-10-11)

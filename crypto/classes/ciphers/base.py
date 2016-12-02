@@ -127,10 +127,15 @@ class BlockCipher(CryptoCipher):
         raise NotImplemented("Block Cipher not specified.")
 
     def _get_counter(self):
-        """Returns a stateful Counter instance of 128 bits.
-        No prefix or suffix is applied.
+        """Returns a stateful Counter instance. Uses Pycrypto's incrementing function,
+        where each counter block size is equal to the forward cipher's block size (in bytes).
+        No prefix or suffix is applied; wrap arounds are disallowed to ensure uniqueness.
         """
-        return Counter.new(128, initial_value=self.initial_value)
+        return Counter.new(
+            self.block_size * 8,
+            initial_value=self.initial_value,
+            allow_wraparound=False
+        )
 
     def _get_pad_char(self, ignore=None):
         """Return a random character to pad text that does not match ignore."""

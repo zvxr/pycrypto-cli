@@ -14,15 +14,14 @@ class BlowfishCipher(BlockCipher):
     supported_modes = {
         'CBC': Blowfish.MODE_CBC,
         'CFB': Blowfish.MODE_CFB,
-        #'CTR': Blowfish.MODE_CTR,  # Does not work.
+        'CTR': Blowfish.MODE_CTR,
         'ECB': Blowfish.MODE_ECB,
         'OFB': Blowfish.MODE_OFB
     }
 
     def __init__(self, key=None, iv=None, initial_value=1):
         """initial_value is only applied to CTR."""
-        super(BlowfishCipher, self).__init__(key, iv)
-        self.initial_value = initial_value
+        super(BlowfishCipher, self).__init__(key, iv, initial_value)
 
     @BlockCipher.key.setter
     def key(self, value):
