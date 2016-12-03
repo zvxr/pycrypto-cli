@@ -109,7 +109,7 @@ class CipherInterface(base_cli.DataInterface):
         """
         if 'iv' not in self.cipher.attributes:
             return
-        elif self.cipher.ignore_iv:
+        elif not self.cipher.mode.requires_iv:
             return
         elif iv_path:
             self.cipher.iv = self.read_from_file(iv_path)

@@ -1,7 +1,12 @@
 
+from collections import namedtuple
 from crypto.classes.encoders.base import Encoder
 from Crypto import Random
+from Crypto.Cipher import blockalgo
 from Crypto.Util import Counter
+
+
+BlockCipherMode = namedtuple('BlockCipherMode', ('mode_id', 'requires_iv', 'uses_counter'))
 
 
 class CryptoCipher(object):
@@ -61,16 +66,21 @@ class CryptoCipher(object):
 
 class BlockCipher(CryptoCipher):
     """Base Class for Block Ciphers."""
-    attributes = ('key', 'iv')
+    attributes = ('key', 'iv', 'mode')
     block_size = 0
-    default_mode = None
-    modes_ignore_iv = ()
-    modes_use_counter = ()
-    supported_modes = {}
+    cipher_function = None
+    default_mode = 'ECB'
+    supported_modes = {
+        'CBC': BlockCipherMode(blockalgo.MODE_CBC, True, False),
+        'CFB': BlockCipherMode(blockalgo.MODE_CFB, True, False),
+        'CTR': BlockCipherMode(blockalgo.MODE_CTR, False, True),
+        'ECB': BlockCipherMode(blockalgo.MODE_ECB, False, False),
+        'OFB': BlockCipherMode(blockalgo.MODE_OFB, True, False)
+    }
 
     def __init__(self, key=None, iv=None, initial_value=1):
         super(BlockCipher, self).__init__(key)
-        self._mode = self.default_mode
+        self._mode = self.supported_modes[self.default_mode]
         self._iv = iv
         self.initial_value = initial_value
 
@@ -82,15 +92,8 @@ class BlockCipher(CryptoCipher):
         )
 
     @property
-    def ignore_iv(self):
-        """This will return a Boolean on if the IV when getting or setting should
-        be ignored.
-        """
-        return self.mode in self.modes_ignore_iv
-
-    @property
     def iv(self):
-        if self.ignore_iv:
+        if not self.mode.requires_iv:
             return
 
         if self._iv is not None:
@@ -100,9 +103,13 @@ class BlockCipher(CryptoCipher):
 
     @iv.setter
     def iv(self, value):
-        if self.ignore_iv:
+        if not self.mode.requires_iv:
             return
 
+        if value is not None and len(value) != self.block_size:
+            raise AttributeError(
+                "iv must be {} bytes long.".format(self.block_size)
+            )
         self._iv = value
 
     @property
@@ -116,15 +123,16 @@ class BlockCipher(CryptoCipher):
             raise AttributeError("Chaining mode not supported.")
         self._mode = self.supported_modes[value]
 
-    @property
-    def use_counter(self):
-        """This will return a Boolean on if a counter is necessary (based on mode).
-        """
-        return self.mode in self.modes_use_counter
-
     def _get_cipher(self):
-        """This shoudld be overridden by inheriting class."""
-        raise NotImplemented("Block Cipher not specified.")
+        """Return a stateful cipher instance.
+        `key`, `mode` and depending on mode `iv` must be set.
+        """
+        if self.mode.uses_counter:
+            return self.cipher.new(self.key, self.mode.mode_id, counter=self._get_counter())
+        elif self.mode.requires_iv:
+            return self.cipher.new(self.key, self.mode.mode_id, self.iv)
+        else:
+            return self.cipher.new(self.key, self.mode.mode_id)
 
     def _get_counter(self):
         """Returns a stateful Counter instance. Uses Pycrypto's incrementing function,
@@ -132,7 +140,7 @@ class BlockCipher(CryptoCipher):
         No prefix or suffix is applied; wrap arounds are disallowed to ensure uniqueness.
         """
         return Counter.new(
-            self.block_size * 8,
+            self.cipher.block_size * 8,
             initial_value=self.initial_value,
             allow_wraparound=False
         )
@@ -155,13 +163,16 @@ class BlockCipher(CryptoCipher):
     def encrypt(self, plaintext):
         """Generate cipher, encrypt, and encode data."""
         cipher = self._get_cipher()
-        padded_plaintext = self.pad(plaintext, self.block_size)
+        padded_plaintext = self.pad(plaintext, self.cipher.block_size)
         ciphertext = cipher.encrypt(padded_plaintext)
         return self._encode(ciphertext)
 
     def generate_iv(self):
-        """Randomly generate an IV byte string of the object's block size."""
-        return Random.new().read(self.block_size)
+        """Randomly generate an IV byte string of the object's block size.
+        This has miniscule odds of producing a non-unique IV, which may be
+        unsafe for OFB mode.
+        """
+        return Random.new().read(self.cipher.block_size)
 
     def pad(self, text, block_size):
         """Left pad text with a random character. Always add padding."""
