@@ -36,8 +36,7 @@ class CipherInterface(base_cli.DataInterface):
     def __init__(
         self,
         cipher,
-        clipboard_input=None,
-        clipboard_output=None,
+        clipboard=None,
         data_input_path=None,
         data_output_path=None,
         decrypt=None,
@@ -52,8 +51,7 @@ class CipherInterface(base_cli.DataInterface):
     ):
         """Sets up the cipher itself when initializing."""
         super(CipherInterface, self).__init__(
-            clipboard_input,
-            clipboard_output,
+            clipboard,
             data_input_path,
             data_output_path
         )

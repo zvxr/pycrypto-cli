@@ -22,8 +22,7 @@ class DataInterface(Interface):
     """Base class for commandline interfaces that deal with data."""
     def __init__(
         self,
-        clipboard_input=None,
-        clipboard_output=None,
+        clipboard=None,
         data_input_path=None,
         data_output_path=None,
         *args,
@@ -31,8 +30,8 @@ class DataInterface(Interface):
     ):
         super(DataInterface, self).__init__()
 
-        self.set_data_input(clipboard_input, data_input_path)
-        self.set_data_output(clipboard_input, data_output_path)
+        self.set_data_input(clipboard, data_input_path)
+        self.set_data_output(clipboard, data_output_path)
 
     def _get_char(self):
         """Fetch and return a single character input from terminal."""
@@ -143,22 +142,15 @@ def execute(args):
 
 def add_parser_args(parser):
     """Adds DataInterface related arguments to ArgumentParser and sets execute method.
-    Uses switches (i, o, v, x).
+    Uses switches (c, i, o).
     """
     parser.set_defaults(execute=execute)
 
     parser.add_argument(
-        "--clipboard-input",
-        "-x",
+        "--clipboard",
+        "-c",
         action="store_true",
-        help="Data is pulled from clipboard."
-    )
-
-    parser.add_argument(
-        "--clipboard-output",
-        "-v",
-        action="store_true",
-        help="Data response is stored in clipboard."
+        help="Data is pulled from and stored in clipboard."
     )
 
     parser.add_argument(
