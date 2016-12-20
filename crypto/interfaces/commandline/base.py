@@ -17,9 +17,16 @@ class Interface(object):
         """This is typically called last."""
         pass
 
+    def write_to_file(self, path, data):
+        """Write data to file path."""
+        # TODO: It may be more suited for this to exist as base class centered
+        # around data output that DataInterface & KeysInterface inherit from.
+        with open(path, 'wb') as f:
+            f.write(data)
+
 
 class DataInterface(Interface):
-    """Base class for commandline interfaces that deal with data."""
+    """Base class for commandline interfaces that deal with data input & output."""
     def __init__(
         self,
         clipboard=None,
@@ -43,10 +50,6 @@ class DataInterface(Interface):
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return char
-
-    def cleanup(self):
-        if self.clear_on_exit:
-            raw_input("Press ENTER key or CTRL+C to complete.")
 
     def get_bool_from_prompt(self, prompt="Please type Y or N:"):
         """Locks terminal screen until user enters Y/N. Returns boolean."""
@@ -124,11 +127,6 @@ class DataInterface(Interface):
         stdoutdata, stderrdata = process.communicate(
             input=data.encode('utf-8')
         )
-
-    def write_to_file(self, path, data):
-        """Write data to file path."""
-        with open(path, 'wb') as f:
-            f.write(data)
 
 
 def execute(args):
