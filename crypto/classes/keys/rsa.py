@@ -2,33 +2,63 @@
 from Crypto.PublicKey import RSA
 
 
-def _generate_key(key_size):
-    if not key_size % 256:
-        raise AttributeError("key_size must be a multiple of 256.")
-    if key_size < 1024:
-        raise AttributeError("key_size must be at least 1024 bits.")
-
-    return RSA.generate(key_size)
-
-
-def generate_key(key_size=2048):
-    """Generate a private key of bit size `key_size`.
-    Must be a multiple of 256 and >= 1024 bytes.
+class RSAKeys(object):
+    """Wraps Pycrypto RSA.
+        key_size must be a multiple of 256 and >= 1024 bytes.
     """
-    key = _generate_key(key_size)
+    attributes = ('key',)
+    supported_modes = ('DER', 'OpenSSH', 'PEM')
 
-    return key.exportKey('PEM')
+    def __init__(
+        self,
+        key_format,
+        key_size,
+        passphrase=None
+    ):
+        self.key_format = key_format
+        self.key_size = key_size
+        self.passphrase = passphrase
 
+    def __repr__(self):
+        return "{} key {} set.".format(
+            self.__class__,
+            "is" if self._key is not None else "is not"
+        )
 
-def generate_keys(key_size=2048):
-    """Generate a public and private key set of bit size `key_size`.
-    Must be a multiple of 256 and >= 1024 bytes.
-    """
-    key = _generate_key(key_size)
-    public_key = key.publickey().exportKey('PEM')
-    private_key = key.exportKey('PEM')
+    @property
+    def key(self):
+        """Lazy loads key when first accessed."""
+        if self._key is None:
+            self._key = self._generate_key()
+        return self._key
 
-    return public_key, private_key
+    @property
+    def key_format(self):
+        return self._key_format
+
+    @key_format.setter(self, value):
+        if value not in self.supported_modes:
+            self._key_format = value
+
+    @property
+    def key_size(self):
+        return self._key_size
+
+    @key_size.setter(self, value):
+        if not value % 256:
+            raise AttributeError("key_size must be a multiple of 256.")
+        if value < 1024:
+            raise AttributeError("key_size must be at least 1024 bits.")
+        self._key_size = value
+
+    def _generate_key(self):
+        return RSA.generate(self.key_size)
+
+    def get_private_key(self):
+        return self.key.exportKey(self.key_format)
+
+    def get_public_key(self):
+        return self.key.publickey().export(self.key_format)
 
 
 def import_key(key, passphrase=None):
