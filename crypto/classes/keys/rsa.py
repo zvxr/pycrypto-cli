@@ -4,7 +4,7 @@ from Crypto.PublicKey import RSA
 
 class RSAKeys(object):
     """Wraps Pycrypto RSA.
-        key_size must be a multiple of 256 and >= 1024 bytes.
+    key_size must be a multiple of 256 and >= 1024 bytes.
     """
     attributes = ('key',)
     supported_modes = ('DER', 'OpenSSH', 'PEM')
