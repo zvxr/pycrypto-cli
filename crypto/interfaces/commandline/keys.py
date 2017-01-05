@@ -32,7 +32,7 @@ class KeysInterface(base_cli.Interface):
         """Performs necessary encryption/decryption and associated writing operations."""
         pass
 
-    def set_data_output(self, clipboard_output, data_output_path):
+    def set_data_output(self, data_output_path):
         """Stores the method to be called for generating store_data. Writing to file
         `data_output_path` takes highest priority. Lowest priority is to print to screen.
         """
@@ -52,7 +52,7 @@ def execute(args):
 def add_parser_args(parser):
     """Adds Cipher related arguments to ArgumentParser and sets execute method.
     Add positional argument 'algorithm'.
-    Uses optional switches (o).
+    Uses optional switches (f, o).
     """
     parser.set_defaults(execute=execute)
 

@@ -18,6 +18,7 @@ class RSAKeys(object):
         self.key_format = key_format
         self.key_size = key_size
         self.passphrase = passphrase
+        self._key = None
 
     def __repr__(self):
         return "{} key {} set.".format(
@@ -36,16 +37,21 @@ class RSAKeys(object):
     def key_format(self):
         return self._key_format
 
-    @key_format.setter(self, value):
+    @key_format.setter
+    def key_format(self, value):
         if value not in self.supported_modes:
-            self._key_format = value
+            raise AttributeError(
+                "key_format does not match one of the supported modes: {}".format(self.supported_modes)
+            )
+        self._key_format = value
 
     @property
     def key_size(self):
         return self._key_size
 
-    @key_size.setter(self, value):
-        if not value % 256:
+    @key_size.setter
+    def key_size(self, value):
+        if value % 256 != 0:
             raise AttributeError("key_size must be a multiple of 256.")
         if value < 1024:
             raise AttributeError("key_size must be at least 1024 bits.")
@@ -54,11 +60,11 @@ class RSAKeys(object):
     def _generate_key(self):
         return RSA.generate(self.key_size)
 
-    def get_private_key(self):
-        return self.key.exportKey(self.key_format)
+    def get_private_key(self, passphrase=None):
+        return self.key.exportKey(self.key_format, passphrase=passphrase)
 
-    def get_public_key(self):
-        return self.key.publickey().export(self.key_format)
+    def get_public_key(self, passphrase=None):
+        return self.key.publickey().exportKey(self.key_format, passphrase=passphrase)
 
 
 def import_key(key, passphrase=None):
