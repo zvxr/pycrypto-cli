@@ -65,7 +65,6 @@ class BlockCipherMixin(CryptoCipherMixin):
         self.assertEqual(cipher._encoder, None)
         self.assertEqual(cipher._decoder, None)
         self.assertRaises(AttributeError, getattr, cipher, 'key')
-        self.assertRaises(AttributeError, getattr, cipher, 'iv')
 
         if not overrides_encryption:
             self.assertRaises(NotImplementedError, cipher.encrypt, "meow")
@@ -172,12 +171,12 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
 
     def test_mode_property(self):
         cipher = aes_cipher.AESCipher()  # Expects Cipher FeedBack.
-        self.assertEqual(cipher._mode, AES.MODE_CFB)
+        self.assertEqual(cipher._mode.mode_id, AES.MODE_ECB)
 
-        cipher.set_mode('ECB')
-        self.assertEqual(cipher._mode, AES.MODE_ECB)
+        cipher.mode = 'CTR'
+        self.assertEqual(cipher._mode.mode_id, AES.MODE_CTR)
 
-        self.assertRaises(AttributeError, cipher.set_mode, 'PGP')
+        self.assertRaises(AttributeError, cipher.mode, 'PGP')
 
     def test_generate_iv(self):
         cipher = aes_cipher.AESCipher()
@@ -201,7 +200,7 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
             key="wruff wruff meow",
             iv="meow wruff wruff"
         )
-        cipher.set_mode('CFB')
+        cipher.mode = 'CFB'
         self.assertEqual(cipher._get_cipher(), aes_new_mock.return_value)
         aes_new_mock.assert_called_with("wruff wruff meow", AES.MODE_CFB, "meow wruff wruff")
 
@@ -209,7 +208,7 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
             key="wruff wruff meow",
             iv="meow wruff wruff"
         )
-        cipher.set_mode('ECB')
+        cipher.mode = 'ECB'
         self.assertEqual(cipher._get_cipher(), aes_new_mock.return_value)
         aes_new_mock.assert_called_with("wruff wruff meow", AES.MODE_ECB)
 
@@ -259,8 +258,7 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         """
         cipher = aes_cipher.AESCipher()
         cipher.iv = cipher.generate_iv()
-        if mode:
-            cipher.set_mode(mode)
+        cipher.mode = mode
         random_device = random.Random.new()
 
         # Test various key sizes.

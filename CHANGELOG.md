@@ -4,6 +4,7 @@ pycrypto-cli change log
 0.4.0 (2016-12-02)
 ------------------
 - Cleaned up and consolidated block cipher modes and how they're implemented.
+- Added RSA keys class.
 
 0.3.0 (2016-11-17)
 ------------------
