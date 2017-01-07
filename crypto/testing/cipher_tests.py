@@ -128,17 +128,17 @@ class CryptoCipherTest(unittest.TestCase, CryptoCipherMixin):
 class BlockCipherTest(unittest.TestCase, BlockCipherMixin):
     def test_init(self):
         cipher = base_cipher.BlockCipher()
-        self._test_init_no_args(cipher, overrides_encryption=False)
+        self._test_init_no_args(cipher, overrides_encryption=True)
 
     def test_init_args(self):
-        cipher = base_cipher.BlockCipher(key="fishsticks", iv="meow")
+        cipher = base_cipher.BlockCipher(key="fishsticks", iv="meow", mode='CBC')
         self._test_init_key(cipher, "fishsticks")
         self._test_init_iv(cipher, "meow")
 
     def test_iv_property(self):
-        cipher = base_cipher.BlockCipher(iv="meow")
+        cipher = base_cipher.BlockCipher(iv="meow", mode='CBC')
         self._test_init_iv(cipher, "meow")
-        self._test_iv_setter(cipher, "wruff")
+        self._test_iv_setter(cipher, "")
 
     def test_get_pad_char(self):
         cipher = base_cipher.BlockCipher()
@@ -165,7 +165,7 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         self._test_key_setter(cipher, "meow wruff wruff", invalid_key="wruff")
 
     def test_iv_property(self):
-        cipher = aes_cipher.AESCipher(iv="meow wruff wruff")
+        cipher = aes_cipher.AESCipher(iv="meow wruff wruff", mode='CBC')
         self._test_init_iv(cipher, "meow wruff wruff")
         self._test_iv_setter(cipher, "wruff wruff meow", invalid_iv="wruff")
 
@@ -175,8 +175,6 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
 
         cipher.mode = 'CTR'
         self.assertEqual(cipher._mode.mode_id, AES.MODE_CTR)
-
-        self.assertRaises(AttributeError, cipher.mode, 'PGP')
 
     def test_generate_iv(self):
         cipher = aes_cipher.AESCipher()
@@ -257,8 +255,8 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         Key and IV generation is derived entirely from class staticmethods.
         """
         cipher = aes_cipher.AESCipher()
-        cipher.iv = cipher.generate_iv()
         cipher.mode = mode
+        cipher.iv = cipher.generate_iv()
         random_device = random.Random.new()
 
         # Test various key sizes.
