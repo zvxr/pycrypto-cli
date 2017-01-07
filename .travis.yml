@@ -1,0 +1,13 @@
+language: python
+python:
+    - 2.7
+env:
+    global:
+        - PYTHONPATH="$TRAVIS_BUILD_DIR/_pypath"
+        - LOG_PATH="$TRAVIS_BUILD_DIR/log"
+install:
+    - pip install -r requirements.txt
+    - cd $TRAVIS_BUILD_DIR
+script:
+    - python -m crypto.testing.cipher_tests
+
