@@ -11,7 +11,9 @@ from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
 
 
 CHAINING_MODE_CHOICES = set(
-    AESCipher.supported_modes.keys() + BlowfishCipher.supported_modes.keys()
+    AESCipher.supported_modes.keys() +
+    BlowfishCipher.supported_modes.keys() +
+    CASTCipher.supported_modes.keys()
 )
 
 CIPHERS = {
@@ -36,8 +38,7 @@ class CipherInterface(base_cli.DataInterface):
     def __init__(
         self,
         cipher,
-        clipboard_input=None,
-        clipboard_output=None,
+        clipboard=None,
         data_input_path=None,
         data_output_path=None,
         decrypt=None,
@@ -52,8 +53,7 @@ class CipherInterface(base_cli.DataInterface):
     ):
         """Sets up the cipher itself when initializing."""
         super(CipherInterface, self).__init__(
-            clipboard_input,
-            clipboard_output,
+            clipboard,
             data_input_path,
             data_output_path
         )
@@ -109,7 +109,7 @@ class CipherInterface(base_cli.DataInterface):
         """
         if 'iv' not in self.cipher.attributes:
             return
-        elif self.cipher.ignore_iv:
+        elif not self.cipher.mode.requires_iv:
             return
         elif iv_path:
             self.cipher.iv = self.read_from_file(iv_path)

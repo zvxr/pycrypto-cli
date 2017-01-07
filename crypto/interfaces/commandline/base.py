@@ -17,13 +17,19 @@ class Interface(object):
         """This is typically called last."""
         pass
 
+    def write_to_file(self, path, data):
+        """Write data to file path."""
+        # TODO: It may be more suited for this to exist as base class centered
+        # around data output that DataInterface & KeysInterface inherit from.
+        with open(path, 'wb') as f:
+            f.write(data)
+
 
 class DataInterface(Interface):
-    """Base class for commandline interfaces that deal with data."""
+    """Base class for commandline interfaces that deal with data input & output."""
     def __init__(
         self,
-        clipboard_input=None,
-        clipboard_output=None,
+        clipboard=None,
         data_input_path=None,
         data_output_path=None,
         *args,
@@ -31,8 +37,8 @@ class DataInterface(Interface):
     ):
         super(DataInterface, self).__init__()
 
-        self.set_data_input(clipboard_input, data_input_path)
-        self.set_data_output(clipboard_input, data_output_path)
+        self.set_data_input(clipboard, data_input_path)
+        self.set_data_output(clipboard, data_output_path)
 
     def _get_char(self):
         """Fetch and return a single character input from terminal."""
@@ -44,10 +50,6 @@ class DataInterface(Interface):
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return char
-
-    def cleanup(self):
-        if self.clear_on_exit:
-            raw_input("Press ENTER key or CTRL+C to complete.")
 
     def get_bool_from_prompt(self, prompt="Please type Y or N:"):
         """Locks terminal screen until user enters Y/N. Returns boolean."""
@@ -126,11 +128,6 @@ class DataInterface(Interface):
             input=data.encode('utf-8')
         )
 
-    def write_to_file(self, path, data):
-        """Write data to file path."""
-        with open(path, 'wb') as f:
-            f.write(data)
-
 
 def execute(args):
     """Instantiates interface from argparse namespace and executes.
@@ -143,22 +140,15 @@ def execute(args):
 
 def add_parser_args(parser):
     """Adds DataInterface related arguments to ArgumentParser and sets execute method.
-    Uses switches (i, o, v, x).
+    Uses switches (c, i, o).
     """
     parser.set_defaults(execute=execute)
 
     parser.add_argument(
-        "--clipboard-input",
-        "-x",
+        "--clipboard",
+        "-c",
         action="store_true",
-        help="Data is pulled from clipboard."
-    )
-
-    parser.add_argument(
-        "--clipboard-output",
-        "-v",
-        action="store_true",
-        help="Data response is stored in clipboard."
+        help="Data is pulled from and stored in clipboard."
     )
 
     parser.add_argument(
