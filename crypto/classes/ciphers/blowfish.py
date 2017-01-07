@@ -8,9 +8,9 @@ class BlowfishCipher(BlockCipher):
     """Blowfish symmetric block cipher."""
     cipher = Blowfish
 
-    def __init__(self, key=None, iv=None, initial_value=1):
+    def __init__(self, key=None, iv=None, mode=None, initial_value=1):
         """initial_value is only applied to CTR."""
-        super(BlowfishCipher, self).__init__(key, iv, initial_value)
+        super(BlowfishCipher, self).__init__(key, iv, mode, initial_value)
 
     @BlockCipher.key.setter
     def key(self, value):

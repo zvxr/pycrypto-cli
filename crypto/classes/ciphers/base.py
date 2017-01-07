@@ -68,7 +68,7 @@ class BlockCipher(CryptoCipher):
     """Base Class for Block Ciphers."""
     attributes = ('key', 'iv', 'mode')
     block_size = 0
-    cipher_function = None
+    cipher = None
     default_mode = 'ECB'
     supported_modes = {
         'CBC': BlockCipherMode(blockalgo.MODE_CBC, True, False),
@@ -78,9 +78,9 @@ class BlockCipher(CryptoCipher):
         'OFB': BlockCipherMode(blockalgo.MODE_OFB, True, False)
     }
 
-    def __init__(self, key=None, iv=None, initial_value=1):
+    def __init__(self, key=None, iv=None, mode=None, initial_value=1):
         super(BlockCipher, self).__init__(key)
-        self._mode = self.supported_modes[self.default_mode]
+        self.mode = mode or self.default_mode
         self._iv = iv
         self.initial_value = initial_value
 
@@ -106,9 +106,10 @@ class BlockCipher(CryptoCipher):
         if not self.mode.requires_iv:
             return
 
-        if value is not None and len(value) != self.block_size:
+        block_size = self.cipher.block_size if self.cipher else self.block_size
+        if value is not None and len(value) != block_size:
             raise AttributeError(
-                "iv must be {} bytes long.".format(self.block_size)
+                "iv must be {} bytes long.".format(block_size)
             )
         self._iv = value
 
@@ -127,6 +128,9 @@ class BlockCipher(CryptoCipher):
         """Return a stateful cipher instance.
         `key`, `mode` and depending on mode `iv` must be set.
         """
+        if not self.cipher:
+            raise NotImplemented("No cipher set.")
+
         if self.mode.uses_counter:
             return self.cipher.new(self.key, self.mode.mode_id, counter=self._get_counter())
         elif self.mode.requires_iv:
