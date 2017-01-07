@@ -4,6 +4,7 @@ pycrypto-cli change log
 0.4.1 (2017-01-06)
 ------------------
 - Added Travis hook.
+- Completed block cipher test coverage.
 
 0.4.0 (2016-12-02)
 ------------------

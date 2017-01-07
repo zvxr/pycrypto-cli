@@ -1,6 +1,8 @@
 
 import crypto.classes.ciphers.aes as aes_cipher
 import crypto.classes.ciphers.base as base_cipher
+import crypto.classes.ciphers.blowfish as blowfish_cipher
+import crypto.classes.ciphers.cast as cast_cipher
 import crypto.classes.ciphers.xor as xor_cipher
 import crypto.classes.encoders.base as base_encoders
 import crypto.classes.encoders.binary as binary_encoders
@@ -10,6 +12,8 @@ import unittest
 import util
 
 from Crypto.Cipher import AES
+from Crypto.Cipher import Blowfish
+from Crypto.Cipher import CAST
 from Crypto.Random import random
 
 
@@ -261,6 +265,246 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
 
         # Test various key sizes.
         for key_size in (16, 24, 32):
+            cipher.key = cipher.generate_key(key_size)
+            util.test_cipher_encryption(self, cipher, random_device.read(2000))
+
+        # Test encoders.
+        for encoder in (
+            base_encoders.NullEncoder,
+            binary_encoders.Base64Encoder,
+            binary_encoders.URLSafeBase64Encoder
+        ):
+            cipher.set_encoding(encoder)
+            util.test_cipher_encryption(self, cipher, random_device.read(2000))
+
+
+class BlowfishCipherTest(unittest.TestCase, BlockCipherMixin):
+    def test_init(self):
+        cipher = blowfish_cipher.BlowfishCipher()
+        self._test_init_no_args(cipher)
+
+    def test_key_property(self):
+        cipher = blowfish_cipher.BlowfishCipher(key="wruff wruff meow")
+        self._test_init_key(cipher, "wruff wruff meow")
+        self._test_key_setter(cipher, "meow wruff wruff", invalid_key="meow" * 50)
+
+    def test_iv_property(self):
+        cipher = blowfish_cipher.BlowfishCipher(iv="wruff!!!", mode='CBC')
+        self._test_init_iv(cipher, "wruff!!!")
+        self._test_iv_setter(cipher, "wruff!!!", invalid_iv="meow")
+
+    def test_mode_property(self):
+        cipher = blowfish_cipher.BlowfishCipher()  # Expects Cipher FeedBack.
+        self.assertEqual(cipher._mode.mode_id, Blowfish.MODE_ECB)
+
+        cipher.mode = 'CTR'
+        self.assertEqual(cipher._mode.mode_id, Blowfish.MODE_CTR)
+
+    def test_generate_iv(self):
+        cipher = blowfish_cipher.BlowfishCipher()
+        self.assertEqual(len(cipher.generate_iv()), Blowfish.block_size)
+
+    def test_generate_key(self):
+        cipher = blowfish_cipher.BlowfishCipher()
+        self.assertEqual(len(cipher.generate_key()), 56)  # test default.
+        self.assertEqual(len(cipher.generate_key(4)), 4)
+        self.assertEqual(len(cipher.generate_key(24)), 24)
+        self.assertEqual(len(cipher.generate_key(32)), 32)
+        self.assertRaises(AttributeError, cipher.generate_key, 64)
+
+    def test_set_encoding(self):
+        cipher = blowfish_cipher.BlowfishCipher()
+        self._test_set_encoding(cipher)
+
+    @mock.patch('Crypto.Cipher.Blowfish.new')
+    def test_get_cipher(self, Blowfish_new_mock):
+        cipher = blowfish_cipher.BlowfishCipher(
+            key="wruff wruff meow",
+            iv="meow wruff wruff"
+        )
+        cipher.mode = 'CFB'
+        self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
+        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_CFB, "meow wruff wruff")
+
+        cipher = blowfish_cipher.BlowfishCipher(
+            key="wruff wruff meow",
+            iv="meow wruff wruff"
+        )
+        cipher.mode = 'ECB'
+        self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
+        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_ECB)
+
+    @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher._encode')
+    @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher.pad')
+    @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher._get_cipher')
+    def test_encrypt(self, get_cipher_mock, pad_mock, encode_mock):
+        blowfish_cipher_mock = get_cipher_mock.return_value
+        cipher = blowfish_cipher.BlowfishCipher()
+        self.assertEqual(cipher.encrypt("meow"), encode_mock.return_value)
+        get_cipher_mock.assert_called_with()
+        pad_mock.assert_called_with("meow", Blowfish.block_size)
+        blowfish_cipher_mock.encrypt.assert_called_with(pad_mock.return_value)
+        encode_mock.assert_called_with(blowfish_cipher_mock.encrypt.return_value)
+
+    @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher._decode')
+    @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher.unpad')
+    @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher._get_cipher')
+    def test_decrypt(self, get_cipher_mock, unpad_mock, decode_mock):
+        blowfish_cipher_mock = get_cipher_mock.return_value
+        cipher = blowfish_cipher.BlowfishCipher()
+        self.assertEqual(cipher.decrypt("wruff"), unpad_mock.return_value)
+        get_cipher_mock.assert_called_with()
+        decode_mock.assert_called_with("wruff")
+        blowfish_cipher_mock.decrypt.assert_called_with(decode_mock.return_value)
+        unpad_mock.assert_called_with(blowfish_cipher_mock.decrypt.return_value)
+
+    def test_encryption_cbc(self):
+        """This will actually execute encrypting/decrypting data for CBC mode."""
+        self._test_encryption('CBC')
+
+    def test_encryption_cfb(self):
+        """This will actually execute encrypting/decrypting data for CFB mode."""
+        self._test_encryption('CFB')
+
+    def test_encryption_ecb(self):
+        """This will actually execute encrypting/decrypting data for ECB mode."""
+        self._test_encryption('ECB')
+
+    def test_encryption_ofb(self):
+        """This will actually execute encrypting/decrypting data for OFB mode."""
+        self._test_encryption('OFB')
+
+    def _test_encryption(self, mode):
+        """This will actually execute encrypting/decrypting data.
+        Key and IV generation is derived entirely from class staticmethods.
+        """
+        cipher = blowfish_cipher.BlowfishCipher()
+        cipher.mode = mode
+        cipher.iv = cipher.generate_iv()
+        random_device = random.Random.new()
+
+        # Test various key sizes.
+        for key_size in (16, 24, 32):
+            cipher.key = cipher.generate_key(key_size)
+            util.test_cipher_encryption(self, cipher, random_device.read(2000))
+
+        # Test encoders.
+        for encoder in (
+            base_encoders.NullEncoder,
+            binary_encoders.Base64Encoder,
+            binary_encoders.URLSafeBase64Encoder
+        ):
+            cipher.set_encoding(encoder)
+            util.test_cipher_encryption(self, cipher, random_device.read(2000))
+
+
+class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
+    def test_init(self):
+        cipher = cast_cipher.CASTCipher()
+        self._test_init_no_args(cipher)
+
+    def test_key_property(self):
+        cipher = cast_cipher.CASTCipher(key="wruff wruff meow")
+        self._test_init_key(cipher, "wruff wruff meow")
+        self._test_key_setter(cipher, "meow wruff wruff", invalid_key="meow" * 50)
+
+    def test_iv_property(self):
+        cipher = cast_cipher.CASTCipher(iv="wruff!!!", mode='CBC')
+        self._test_init_iv(cipher, "wruff!!!")
+        self._test_iv_setter(cipher, "wruff!!!", invalid_iv="meow")
+
+    def test_mode_property(self):
+        cipher = cast_cipher.CASTCipher()  # Expects Cipher FeedBack.
+        self.assertEqual(cipher._mode.mode_id, Blowfish.MODE_ECB)
+
+        cipher.mode = 'CTR'
+        self.assertEqual(cipher._mode.mode_id, Blowfish.MODE_CTR)
+
+    def test_generate_iv(self):
+        cipher = cast_cipher.CASTCipher()
+        self.assertEqual(len(cipher.generate_iv()), Blowfish.block_size)
+
+    def test_generate_key(self):
+        cipher = cast_cipher.CASTCipher()
+        self.assertEqual(len(cipher.generate_key()), 16)  # test default.
+        self.assertEqual(len(cipher.generate_key(5)), 5)
+        self.assertEqual(len(cipher.generate_key(8)), 8)
+        self.assertEqual(len(cipher.generate_key(12)), 12)
+        self.assertRaises(AttributeError, cipher.generate_key, 32)
+
+    def test_set_encoding(self):
+        cipher = cast_cipher.CASTCipher()
+        self._test_set_encoding(cipher)
+
+    @mock.patch('Crypto.Cipher.Blowfish.new')
+    def test_get_cipher(self, Blowfish_new_mock):
+        cipher = cast_cipher.CASTCipher(
+            key="wruff wruff meow",
+            iv="meow wruff wruff"
+        )
+        cipher.mode = 'CFB'
+        self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
+        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_CFB, "meow wruff wruff")
+
+        cipher = cast_cipher.CASTCipher(
+            key="wruff wruff meow",
+            iv="meow wruff wruff"
+        )
+        cipher.mode = 'ECB'
+        self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
+        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_ECB)
+
+    @mock.patch('crypto.classes.ciphers.cast.CASTCipher._encode')
+    @mock.patch('crypto.classes.ciphers.cast.CASTCipher.pad')
+    @mock.patch('crypto.classes.ciphers.cast.CASTCipher._get_cipher')
+    def test_encrypt(self, get_cipher_mock, pad_mock, encode_mock):
+        cast_cipher_mock = get_cipher_mock.return_value
+        cipher = cast_cipher.CASTCipher()
+        self.assertEqual(cipher.encrypt("meow"), encode_mock.return_value)
+        get_cipher_mock.assert_called_with()
+        pad_mock.assert_called_with("meow", Blowfish.block_size)
+        cast_cipher_mock.encrypt.assert_called_with(pad_mock.return_value)
+        encode_mock.assert_called_with(cast_cipher_mock.encrypt.return_value)
+
+    @mock.patch('crypto.classes.ciphers.cast.CASTCipher._decode')
+    @mock.patch('crypto.classes.ciphers.cast.CASTCipher.unpad')
+    @mock.patch('crypto.classes.ciphers.cast.CASTCipher._get_cipher')
+    def test_decrypt(self, get_cipher_mock, unpad_mock, decode_mock):
+        cast_cipher_mock = get_cipher_mock.return_value
+        cipher = cast_cipher.CASTCipher()
+        self.assertEqual(cipher.decrypt("wruff"), unpad_mock.return_value)
+        get_cipher_mock.assert_called_with()
+        decode_mock.assert_called_with("wruff")
+        cast_cipher_mock.decrypt.assert_called_with(decode_mock.return_value)
+        unpad_mock.assert_called_with(cast_cipher_mock.decrypt.return_value)
+
+    def test_encryption_cbc(self):
+        """This will actually execute encrypting/decrypting data for CBC mode."""
+        self._test_encryption('CBC')
+
+    def test_encryption_cfb(self):
+        """This will actually execute encrypting/decrypting data for CFB mode."""
+        self._test_encryption('CFB')
+
+    def test_encryption_ecb(self):
+        """This will actually execute encrypting/decrypting data for ECB mode."""
+        self._test_encryption('ECB')
+
+    def test_encryption_ofb(self):
+        """This will actually execute encrypting/decrypting data for OFB mode."""
+        self._test_encryption('OFB')
+
+    def _test_encryption(self, mode):
+        """This will actually execute encrypting/decrypting data.
+        Key and IV generation is derived entirely from class staticmethods.
+        """
+        cipher = cast_cipher.CASTCipher()
+        cipher.mode = mode
+        cipher.iv = cipher.generate_iv()
+        random_device = random.Random.new()
+
+        # Test various key sizes.
+        for key_size in (5, 12, 16):
             cipher.key = cipher.generate_key(key_size)
             util.test_cipher_encryption(self, cipher, random_device.read(2000))
 
