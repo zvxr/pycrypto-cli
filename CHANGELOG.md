@@ -1,6 +1,10 @@
 pycrypto-cli change log
 =======================
 
+0.4.1 (2017-01-06)
+------------------
+- Added Travis hook.
+
 0.4.0 (2016-12-02)
 ------------------
 - Cleaned up and consolidated block cipher modes and how they're implemented.
