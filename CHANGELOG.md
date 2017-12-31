@@ -5,10 +5,11 @@ pycrypto-cli change log
 ------------------
 - Added Travis hook.
 - Completed block cipher test coverage.
+- Pep-8.
 
 0.4.0 (2016-12-02)
 ------------------
-- Cleaned up and consolidated block cipher modes and how they're implemented.
+- Cleaned up and consolidated block cipher modes and how they are implemented.
 - Added RSA keys class.
 
 0.3.0 (2016-11-17)

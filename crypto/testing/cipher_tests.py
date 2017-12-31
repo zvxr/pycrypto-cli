@@ -19,8 +19,9 @@ from Crypto.Random import random
 
 # Mixins for base classes.
 class CryptoCipherMixin(object):
-    """Mixin contains tests to be applied to anything that inherits from CryptoCipher
-    base class. This test class must be inherited with unittest.TestCase to use.
+    """Mixin contains tests to be applied to anything that inherits from
+    CryptoCipher base class. This test class must be inherited with
+    unittest.TestCase to use.
     """
     def _test_init_no_args(self, cipher, overrides_encryption=True):
         self.assertEqual(cipher._key, None)
@@ -42,7 +43,9 @@ class CryptoCipherMixin(object):
         self.assertEqual(cipher.key, valid_key)
 
         if invalid_key is not None:
-            self.assertRaises(AttributeError, setattr, cipher, 'key', invalid_key)
+            self.assertRaises(
+                AttributeError, setattr, cipher, 'key', invalid_key
+            )  
 
     def _test_set_encoding(self, cipher):
         self.assertEqual(cipher._encode("meow", 32, paws_mode=True), "meow")
@@ -53,15 +56,22 @@ class CryptoCipherMixin(object):
         decrypt = mock.Mock()
         encoder = base_encoders.Encoder(encrypt, decrypt)
         cipher.set_encoding(encoder)
-        self.assertEqual(cipher._encode("meow", 32, paws_mode=True), encrypt.return_value)
+        self.assertEqual(
+            cipher._encode("meow", 32, paws_mode=True),
+            encrypt.return_value
+        )
         encrypt.assert_called_with("meow", 32, paws_mode=True)
-        self.assertEqual(cipher._decode("wruff", 57, tail_wag=True), decrypt.return_value)
+        self.assertEqual(
+            cipher._decode("wruff", 57, tail_wag=True),
+            decrypt.return_value
+        )
         decrypt.assert_called_with("wruff", 57, tail_wag=True)
 
 
 class BlockCipherMixin(CryptoCipherMixin):
-    """Mixin contains tests to be applied to anything that inherits from BlockCipher
-    base class. This test class must be inherited with unittest.TestCase to use.
+    """Mixin contains tests to be applied to anything that inherits from
+    BlockCipher base class. This test class must be inherited with
+    unittest.TestCase to use.
     """
     def _test_init_no_args(self, cipher, overrides_encryption=True):
         self.assertEqual(cipher._key, None)
@@ -135,7 +145,9 @@ class BlockCipherTest(unittest.TestCase, BlockCipherMixin):
         self._test_init_no_args(cipher, overrides_encryption=True)
 
     def test_init_args(self):
-        cipher = base_cipher.BlockCipher(key="fishsticks", iv="meow", mode='CBC')
+        cipher = base_cipher.BlockCipher(
+            key="fishsticks", iv="meow", mode='CBC'
+        )
         self._test_init_key(cipher, "fishsticks")
         self._test_init_iv(cipher, "meow")
 
@@ -204,7 +216,11 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         )
         cipher.mode = 'CFB'
         self.assertEqual(cipher._get_cipher(), aes_new_mock.return_value)
-        aes_new_mock.assert_called_with("wruff wruff meow", AES.MODE_CFB, "meow wruff wruff")
+        aes_new_mock.assert_called_with(
+            "wruff wruff meow",
+            AES.MODE_CFB,
+            "meow wruff wruff"
+        )
 
         cipher = aes_cipher.AESCipher(
             key="wruff wruff meow",
@@ -239,19 +255,27 @@ class AESCipherTest(unittest.TestCase, BlockCipherMixin):
         unpad_mock.assert_called_with(aes_cipher_mock.decrypt.return_value)
 
     def test_encryption_cbc(self):
-        """This will actually execute encrypting/decrypting data for CBC mode."""
+        """This will actually execute encrypting/decrypting data for CBC
+        mode.
+        """
         self._test_encryption('CBC')
 
     def test_encryption_cfb(self):
-        """This will actually execute encrypting/decrypting data for CFB mode."""
+        """This will actually execute encrypting/decrypting data for CFB
+        mode.
+        """
         self._test_encryption('CFB')
 
     def test_encryption_ecb(self):
-        """This will actually execute encrypting/decrypting data for ECB mode."""
+        """This will actually execute encrypting/decrypting data for ECB
+        mode.
+        """
         self._test_encryption('ECB')
 
     def test_encryption_ofb(self):
-        """This will actually execute encrypting/decrypting data for OFB mode."""
+        """This will actually execute encrypting/decrypting data for OFB
+        mode.
+        """
         self._test_encryption('OFB')
 
     def _test_encryption(self, mode):
@@ -286,7 +310,11 @@ class BlowfishCipherTest(unittest.TestCase, BlockCipherMixin):
     def test_key_property(self):
         cipher = blowfish_cipher.BlowfishCipher(key="wruff wruff meow")
         self._test_init_key(cipher, "wruff wruff meow")
-        self._test_key_setter(cipher, "meow wruff wruff", invalid_key="meow" * 50)
+        self._test_key_setter(
+            cipher,
+            "meow wruff wruff",
+            invalid_key="meow" * 50
+        )
 
     def test_iv_property(self):
         cipher = blowfish_cipher.BlowfishCipher(iv="wruff!!!", mode='CBC')
@@ -324,7 +352,11 @@ class BlowfishCipherTest(unittest.TestCase, BlockCipherMixin):
         )
         cipher.mode = 'CFB'
         self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
-        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_CFB, "meow wruff wruff")
+        Blowfish_new_mock.assert_called_with(
+            "wruff wruff meow",
+            Blowfish.MODE_CFB,
+            "meow wruff wruff"
+        )
 
         cipher = blowfish_cipher.BlowfishCipher(
             key="wruff wruff meow",
@@ -332,7 +364,10 @@ class BlowfishCipherTest(unittest.TestCase, BlockCipherMixin):
         )
         cipher.mode = 'ECB'
         self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
-        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_ECB)
+        Blowfish_new_mock.assert_called_with(
+            "wruff wruff meow",
+            Blowfish.MODE_ECB
+        )
 
     @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher._encode')
     @mock.patch('crypto.classes.ciphers.blowfish.BlowfishCipher.pad')
@@ -355,23 +390,29 @@ class BlowfishCipherTest(unittest.TestCase, BlockCipherMixin):
         self.assertEqual(cipher.decrypt("wruff"), unpad_mock.return_value)
         get_cipher_mock.assert_called_with()
         decode_mock.assert_called_with("wruff")
-        blowfish_cipher_mock.decrypt.assert_called_with(decode_mock.return_value)
+        blowfish_cipher_mock.decrypt.assert_called_with(
+            decode_mock.return_value
+        )
         unpad_mock.assert_called_with(blowfish_cipher_mock.decrypt.return_value)
 
     def test_encryption_cbc(self):
-        """This will actually execute encrypting/decrypting data for CBC mode."""
+        """This will actually execute encrypting/decrypting data for CBC
+        mode."""
         self._test_encryption('CBC')
 
     def test_encryption_cfb(self):
-        """This will actually execute encrypting/decrypting data for CFB mode."""
+        """This will actually execute encrypting/decrypting data for CFB
+        mode."""
         self._test_encryption('CFB')
 
     def test_encryption_ecb(self):
-        """This will actually execute encrypting/decrypting data for ECB mode."""
+        """This will actually execute encrypting/decrypting data for ECB
+        mode."""
         self._test_encryption('ECB')
 
     def test_encryption_ofb(self):
-        """This will actually execute encrypting/decrypting data for OFB mode."""
+        """This will actually execute encrypting/decrypting data for OFB
+        mode."""
         self._test_encryption('OFB')
 
     def _test_encryption(self, mode):
@@ -406,7 +447,12 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
     def test_key_property(self):
         cipher = cast_cipher.CASTCipher(key="wruff wruff meow")
         self._test_init_key(cipher, "wruff wruff meow")
-        self._test_key_setter(cipher, "meow wruff wruff", invalid_key="meow" * 50)
+        self._test_key_setter(
+            cipher,
+            "meow wruff wruff",
+            invalid_key="meow" * 50
+        )
+
 
     def test_iv_property(self):
         cipher = cast_cipher.CASTCipher(iv="wruff!!!", mode='CBC')
@@ -444,7 +490,11 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
         )
         cipher.mode = 'CFB'
         self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
-        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_CFB, "meow wruff wruff")
+        Blowfish_new_mock.assert_called_with(
+            "wruff wruff meow",
+            Blowfish.MODE_CFB,
+            "meow wruff wruff"
+        )
 
         cipher = cast_cipher.CASTCipher(
             key="wruff wruff meow",
@@ -452,7 +502,10 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
         )
         cipher.mode = 'ECB'
         self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
-        Blowfish_new_mock.assert_called_with("wruff wruff meow", Blowfish.MODE_ECB)
+        Blowfish_new_mock.assert_called_with(
+            "wruff wruff meow",
+            Blowfish.MODE_ECB
+        )
 
     @mock.patch('crypto.classes.ciphers.cast.CASTCipher._encode')
     @mock.patch('crypto.classes.ciphers.cast.CASTCipher.pad')
@@ -479,19 +532,23 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
         unpad_mock.assert_called_with(cast_cipher_mock.decrypt.return_value)
 
     def test_encryption_cbc(self):
-        """This will actually execute encrypting/decrypting data for CBC mode."""
+        """This will actually execute encrypting/decrypting data for CBC
+        mode."""
         self._test_encryption('CBC')
 
     def test_encryption_cfb(self):
-        """This will actually execute encrypting/decrypting data for CFB mode."""
+        """This will actually execute encrypting/decrypting data for CFB
+        mode."""
         self._test_encryption('CFB')
 
     def test_encryption_ecb(self):
-        """This will actually execute encrypting/decrypting data for ECB mode."""
+        """This will actually execute encrypting/decrypting data for ECB
+        mode."""
         self._test_encryption('ECB')
 
     def test_encryption_ofb(self):
-        """This will actually execute encrypting/decrypting data for OFB mode."""
+        """This will actually execute encrypting/decrypting data for OFB
+        mode."""
         self._test_encryption('OFB')
 
     def _test_encryption(self, mode):
@@ -547,7 +604,10 @@ class XORCipherTest(unittest.TestCase, CryptoCipherMixin):
     def test_decrypt(self, xor_new_mock, decode_mock):
         xor_cipher_mock = xor_new_mock.return_value
         cipher = xor_cipher.XORCipher("puppychow")
-        self.assertEqual(cipher.decrypt("wruff"), xor_cipher_mock.decrypt.return_value)
+        self.assertEqual(
+            cipher.decrypt("wruff"),
+            xor_cipher_mock.decrypt.return_value
+        )
         xor_new_mock.assert_called_with("puppychow")
         decode_mock.assert_called_with("wruff")
         xor_cipher_mock.decrypt.assert_called_with(decode_mock.return_value)
@@ -577,20 +637,36 @@ class XORCipherTest(unittest.TestCase, CryptoCipherMixin):
 
         # Test string/byte array.
         util.test_cipher_encryption(self, cipher, "meow" * 500)
-        util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
+        util.test_cipher_encryption(
+            self,
+            cipher,
+            random.Random.new().read(2000)
+        )
 
         # Test encoders.
         cipher.set_encoding(base_encoders.NullEncoder)
         util.test_cipher_encryption(self, cipher, "wruff" * 400)
-        util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
+        util.test_cipher_encryption(
+            self,
+            cipher,
+            random.Random.new().read(2000)
+        )
 
         cipher.set_encoding(binary_encoders.Base64Encoder)
         util.test_cipher_encryption(self, cipher, "meow" * 500)
-        util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
+        util.test_cipher_encryption(
+            self,
+            cipher,
+            random.Random.new().read(2000)
+        )
 
         cipher.set_encoding(binary_encoders.URLSafeBase64Encoder)
         util.test_cipher_encryption(self, cipher, "wruff" * 400)
-        util.test_cipher_encryption(self, cipher, random.Random.new().read(2000))
+        util.test_cipher_encryption(
+            self,
+            cipher,
+            random.Random.new().read(2000)
+        )
 
         # Test keys and instances.
         cipher1 = xor_cipher.XORCipher("fishsticks")

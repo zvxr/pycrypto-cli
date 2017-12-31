@@ -21,7 +21,9 @@ class BlowfishCipher(BlockCipher):
         self._key = value
 
     def generate_key(self, key_size=56):
-        """Randomly generate a key of byte size `key_size`. Must be between 4 and 56."""
+        """Randomly generate a key of byte size `key_size`. Must be between 4
+        and 56.
+        """
         if not 4 <= key_size <= 56:
             raise AttributeError(
                 "key_size must be between 4 and 56 bytes."

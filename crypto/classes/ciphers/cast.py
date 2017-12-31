@@ -21,7 +21,9 @@ class CASTCipher(BlockCipher):
         self._key = value
 
     def generate_key(self, key_size=16):
-        """Randomly generate a key of byte size `key_size`. Must be between 5 and 16."""
+        """Randomly generate a key of byte size `key_size`. Must be between 5
+        and 16.
+        """
         if not 5 <= key_size <= 16:
             raise AttributeError(
                 "key_size must be between 5 and 16 bytes."
