@@ -453,7 +453,6 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
             invalid_key="meow" * 50
         )
 
-
     def test_iv_property(self):
         cipher = cast_cipher.CASTCipher(iv="wruff!!!", mode='CBC')
         self._test_init_iv(cipher, "wruff!!!")
@@ -461,14 +460,14 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
 
     def test_mode_property(self):
         cipher = cast_cipher.CASTCipher()  # Expects Cipher FeedBack.
-        self.assertEqual(cipher._mode.mode_id, Blowfish.MODE_ECB)
+        self.assertEqual(cipher._mode.mode_id, CAST.MODE_ECB)
 
         cipher.mode = 'CTR'
-        self.assertEqual(cipher._mode.mode_id, Blowfish.MODE_CTR)
+        self.assertEqual(cipher._mode.mode_id, CAST.MODE_CTR)
 
     def test_generate_iv(self):
         cipher = cast_cipher.CASTCipher()
-        self.assertEqual(len(cipher.generate_iv()), Blowfish.block_size)
+        self.assertEqual(len(cipher.generate_iv()), CAST.block_size)
 
     def test_generate_key(self):
         cipher = cast_cipher.CASTCipher()
@@ -482,29 +481,29 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
         cipher = cast_cipher.CASTCipher()
         self._test_set_encoding(cipher)
 
-    @mock.patch('Crypto.Cipher.Blowfish.new')
-    def test_get_cipher(self, Blowfish_new_mock):
+    @mock.patch('Crypto.Cipher.CAST.new')
+    def test_get_cipher(self, CASTCipher_new_mock):
         cipher = cast_cipher.CASTCipher(
             key="wruff wruff meow",
-            iv="meow wruff wruff"
+            iv="wruff!!!"
         )
         cipher.mode = 'CFB'
-        self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
-        Blowfish_new_mock.assert_called_with(
+        self.assertEqual(cipher._get_cipher(), CASTCipher_new_mock.return_value)
+        CASTCipher_new_mock.assert_called_with(
             "wruff wruff meow",
-            Blowfish.MODE_CFB,
-            "meow wruff wruff"
+            CAST.MODE_CFB,
+            "wruff!!!"
         )
 
         cipher = cast_cipher.CASTCipher(
             key="wruff wruff meow",
-            iv="meow wruff wruff"
+            iv="wruff!!!"
         )
         cipher.mode = 'ECB'
-        self.assertEqual(cipher._get_cipher(), Blowfish_new_mock.return_value)
-        Blowfish_new_mock.assert_called_with(
+        self.assertEqual(cipher._get_cipher(), CASTCipher_new_mock.return_value)
+        CASTCipher_new_mock.assert_called_with(
             "wruff wruff meow",
-            Blowfish.MODE_ECB
+            CAST.MODE_ECB
         )
 
     @mock.patch('crypto.classes.ciphers.cast.CASTCipher._encode')
@@ -515,7 +514,7 @@ class CASTCipherTest(unittest.TestCase, BlockCipherMixin):
         cipher = cast_cipher.CASTCipher()
         self.assertEqual(cipher.encrypt("meow"), encode_mock.return_value)
         get_cipher_mock.assert_called_with()
-        pad_mock.assert_called_with("meow", Blowfish.block_size)
+        pad_mock.assert_called_with("meow", CAST.block_size)
         cast_cipher_mock.encrypt.assert_called_with(pad_mock.return_value)
         encode_mock.assert_called_with(cast_cipher_mock.encrypt.return_value)
 
