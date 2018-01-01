@@ -13,7 +13,9 @@ KEYS = {
 
 
 class KeysInterface(base_cli.Interface):
-    """Class for commandline interface that deals with generating keys, specifically."""
+    """Class for commandline interface that deals with generating keys,
+    specifically.
+    """
     def __init__(
         self,
         algorithm,
@@ -29,15 +31,21 @@ class KeysInterface(base_cli.Interface):
         self.set_data_output(data_output_path)
 
     def execute(self):
-        """Performs necessary encryption/decryption and associated writing operations."""
+        """Performs necessary encryption/decryption and associated writing
+        operations.
+        """
         pass
 
     def set_data_output(self, data_output_path):
-        """Stores the method to be called for generating store_data. Writing to file
-        `data_output_path` takes highest priority. Lowest priority is to print to screen.
+        """Stores the method to be called for generating store_data. Writing to
+        file `data_output_path` takes highest priority. Lowest priority is to
+        print to screen.
         """
         if data_output_path:
-            self.store_data = lambda data: self.write_to_file(data_output_path, data)
+            self.store_data = lambda data: self.write_to_file(
+                data_output_path,
+                data
+            )
             return
 
         self.store_data = lambda data: print("DATA: {}".format(data))

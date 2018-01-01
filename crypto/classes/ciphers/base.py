@@ -6,7 +6,10 @@ from Crypto.Cipher import blockalgo
 from Crypto.Util import Counter
 
 
-BlockCipherMode = namedtuple('BlockCipherMode', ('mode_id', 'requires_iv', 'uses_counter'))
+BlockCipherMode = namedtuple(
+    'BlockCipherMode',
+    ('mode_id', 'requires_iv', 'uses_counter')
+)
 
 
 class CryptoCipher(object):
@@ -119,7 +122,9 @@ class BlockCipher(CryptoCipher):
 
     @mode.setter
     def mode(self, value):
-        """Set chaining mode by mapping mode (string) to object's supported modes."""
+        """Set chaining mode by mapping mode (string) to object's supported
+        modes.
+        """
         if value not in self.supported_modes:
             raise AttributeError("Chaining mode not supported.")
         self._mode = self.supported_modes[value]
@@ -132,16 +137,21 @@ class BlockCipher(CryptoCipher):
             raise NotImplemented("No cipher set.")
 
         if self.mode.uses_counter:
-            return self.cipher.new(self.key, self.mode.mode_id, counter=self._get_counter())
+            return self.cipher.new(
+                self.key,
+                self.mode.mode_id,
+                counter=self._get_counter()
+            )
         elif self.mode.requires_iv:
             return self.cipher.new(self.key, self.mode.mode_id, self.iv)
         else:
             return self.cipher.new(self.key, self.mode.mode_id)
 
     def _get_counter(self):
-        """Returns a stateful Counter instance. Uses Pycrypto's incrementing function,
-        where each counter block size is equal to the forward cipher's block size (in bytes).
-        No prefix or suffix is applied; wrap arounds are disallowed to ensure uniqueness.
+        """Returns a stateful Counter instance. Uses Pycrypto's incrementing
+        function, where each counter block size is equal to the forward
+        cipher's block size (in bytes). No prefix or suffix is applied; wrap
+        arounds are disallowed to ensure uniqueness.
         """
         return Counter.new(
             self.cipher.block_size * 8,

@@ -8,8 +8,8 @@ from Crypto import Random
 
 
 class XORCipher(CryptoCipher):
-    """Implements Pycrypto bitwise XOR stream cipher.
-    Vulnerable to frequency analysis. Appropriate for hiding data, not securing it.
+    """Implements Pycrypto bitwise XOR stream cipher. Vulnerable to frequency
+    analysis. Appropriate for hiding data, not securing it.
     """
     attributes = ('key',)
 
@@ -20,7 +20,10 @@ class XORCipher(CryptoCipher):
     def key(self, value):
         if value is not None and len(value) not in XOR.key_size:
             raise AttributeError(
-                "key must be {} - {} bytes long.".format(XOR.key_size[0], XOR.key_size[-1])
+                "key must be {} - {} bytes long.".format(
+                    XOR.key_size[0],
+                    XOR.key_size[-1]
+                )
             )
         self._key = value
 
@@ -42,11 +45,16 @@ class XORCipher(CryptoCipher):
         """
         if key_size not in XOR.key_size:
             raise AttributeError(
-                "key must be {} - {} bytes long.".format(XOR.key_size[0], XOR.key_size[-1])
+                "key must be {} - {} bytes long.".format(
+                    XOR.key_size[0],
+                    XOR.key_size[-1]
+                )
             )
 
         if ascii_only:
-            return "".join(random.choice(string.ascii_letters) for i in xrange(key_size))
+            return "".join(
+                random.choice(string.ascii_letters) for i in xrange(key_size)
+            )
         else:
             random_device = Random.new()
             return random_device.read(key_size)

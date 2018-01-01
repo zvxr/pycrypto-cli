@@ -26,7 +26,9 @@ class Interface(object):
 
 
 class DataInterface(Interface):
-    """Base class for commandline interfaces that deal with data input & output."""
+    """Base class for commandline interfaces that deal with data input &
+    output.
+    """
     def __init__(
         self,
         clipboard=None,
@@ -62,7 +64,11 @@ class DataInterface(Interface):
 
     def get_data_from_clipboard(self):
         """Sets data to contents of clipboard."""
-        process = subprocess.Popen(['pbpaste'], stdout=subprocess.PIPE, close_fds=True)
+        process = subprocess.Popen(
+            ['pbpaste'],
+            stdout=subprocess.PIPE,
+            close_fds=True
+        )
         stdout, stderr = process.communicate()
         return stdout.decode('utf-8')
 
@@ -116,7 +122,10 @@ class DataInterface(Interface):
             return
 
         if data_output_path:
-            self.store_data = lambda data: self.write_to_file(data_output_path, data)
+            self.store_data = lambda data: self.write_to_file(
+                data_output_path,
+                data
+            )
             return
 
         self.store_data = lambda data: print("DATA: {}".format(data))
@@ -139,8 +148,8 @@ def execute(args):
 
 
 def add_parser_args(parser):
-    """Adds DataInterface related arguments to ArgumentParser and sets execute method.
-    Uses switches (c, i, o).
+    """Adds DataInterface related arguments to ArgumentParser and sets execute
+    method. Uses switches (c, i, o).
     """
     parser.set_defaults(execute=execute)
 
