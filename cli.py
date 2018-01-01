@@ -1,4 +1,3 @@
-
 import argparse
 import crypto.interfaces.commandline.base as base_cli
 import crypto.interfaces.commandline.cipher as cipher_cli

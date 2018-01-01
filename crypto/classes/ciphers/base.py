@@ -1,4 +1,3 @@
-
 from collections import namedtuple
 from crypto.classes.encoders.base import Encoder
 from Crypto import Random
@@ -22,7 +21,7 @@ class CryptoCipher(object):
         self._decoder = None
 
     def __repr__(self):
-        return "{} key {} set.".format(
+        return "%s key %s set." % (
             self.__class__,
             "is" if self._key is not None else "is not"
         )
@@ -88,7 +87,7 @@ class BlockCipher(CryptoCipher):
         self.initial_value = initial_value
 
     def __repr__(self):
-        return "{} key {} set, IV {} set.".format(
+        return "%s key %s set, IV %s set." % (
             self.__class__,
             "is" if self._key is not None else "is not",
             "is" if self._iv is not None else "is not"
@@ -112,7 +111,7 @@ class BlockCipher(CryptoCipher):
         block_size = self.cipher.block_size if self.cipher else self.block_size
         if value is not None and len(value) != block_size:
             raise AttributeError(
-                "iv must be {} bytes long.".format(block_size)
+                "iv must be %s bytes long." % block_size
             )
         self._iv = value
 

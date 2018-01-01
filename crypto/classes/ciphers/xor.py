@@ -1,4 +1,3 @@
-
 import random
 import string
 
@@ -20,7 +19,7 @@ class XORCipher(CryptoCipher):
     def key(self, value):
         if value is not None and len(value) not in XOR.key_size:
             raise AttributeError(
-                "key must be {} - {} bytes long.".format(
+                "key must be %s - %s bytes long." % (
                     XOR.key_size[0],
                     XOR.key_size[-1]
                 )
@@ -45,7 +44,7 @@ class XORCipher(CryptoCipher):
         """
         if key_size not in XOR.key_size:
             raise AttributeError(
-                "key must be {} - {} bytes long.".format(
+                "key must be %s - %s bytes long." % (
                     XOR.key_size[0],
                     XOR.key_size[-1]
                 )

@@ -1,4 +1,3 @@
-
 import crypto.interfaces.commandline.base as base_cli
 import time
 
@@ -48,7 +47,7 @@ class KeysInterface(base_cli.Interface):
             )
             return
 
-        self.store_data = lambda data: print("DATA: {}".format(data))
+        self.store_data = lambda data: print("DATA: %s" % data)
 
 
 def execute(args):

@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 import getpass
@@ -59,7 +58,7 @@ class DataInterface(Interface):
         while True:
             char = self._get_char().upper()
             if char in ("Y", "N"):
-                print("\r{} {}".format(prompt, char))
+                print("\r%s %s" % (prompt, char))
                 return True if char == "Y" else False
 
     def get_data_from_clipboard(self):
@@ -128,7 +127,7 @@ class DataInterface(Interface):
             )
             return
 
-        self.store_data = lambda data: print("DATA: {}".format(data))
+        self.store_data = lambda data: print("DATA: %s" % (data))
 
     def store_data_in_clipboard(self, data):
         """Store data in clipboard."""
