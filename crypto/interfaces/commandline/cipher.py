@@ -1,4 +1,3 @@
-
 import crypto.interfaces.commandline.base as base_cli
 import time
 
@@ -72,12 +71,12 @@ class CipherInterface(base_cli.DataInterface):
         """Performs necessary encryption/decryption and associated writing
         operations.
         """
-        epoch = "{}".format(int(time.time()))
+        epoch = "%s" % int(time.time())
 
         if self.generated_key:
-            self.write_to_file("{}.key".format(epoch), self.cipher.key)
+            self.write_to_file("%s.key" % epoch, self.cipher.key)
         if self.generated_iv:
-            self.write_to_file("{}.iv".format(epoch), self.cipher.iv)
+            self.write_to_file("%s.iv" % epoch, self.cipher.iv)
 
         if self.decrypt:
             self.store_data(self.cipher.decrypt(self.data))

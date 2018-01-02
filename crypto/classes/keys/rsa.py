@@ -1,4 +1,3 @@
-
 from Crypto.PublicKey import RSA
 
 
@@ -21,7 +20,7 @@ class RSAKeys(object):
         self._key = None
 
     def __repr__(self):
-        return "{} key {} set.".format(
+        return "%s key %s set." % (
             self.__class__,
             "is" if self._key is not None else "is not"
         )
@@ -41,7 +40,9 @@ class RSAKeys(object):
     def key_format(self, value):
         if value not in self.supported_modes:
             raise AttributeError(
-                "key_format does not match one of the supported modes: {}".format(self.supported_modes)
+                "key_format does not match one of the supported modes: %s" % (
+                    self.supported_modes
+                )
             )
         self._key_format = value
 
@@ -64,7 +65,10 @@ class RSAKeys(object):
         return self.key.exportKey(self.key_format, passphrase=passphrase)
 
     def get_public_key(self, passphrase=None):
-        return self.key.publickey().exportKey(self.key_format, passphrase=passphrase)
+        return self.key.publickey().exportKey(
+            self.key_format,
+            passphrase=passphrase
+        )
 
 
 def import_key(key, passphrase=None):

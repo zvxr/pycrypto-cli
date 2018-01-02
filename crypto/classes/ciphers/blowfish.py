@@ -1,4 +1,3 @@
-
 from crypto.classes.ciphers.base import BlockCipher
 from Crypto import Random
 from Crypto.Cipher import Blowfish

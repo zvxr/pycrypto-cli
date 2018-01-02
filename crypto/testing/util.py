@@ -1,9 +1,8 @@
-
 import unittest
+
 
 """Utility (helper) methods for test suite.
 """
-
 
 def test_cipher_encryption(testcase, cipher, plaintext):
     """This will execute a cipher's encrypt/decrypt methods and compare
