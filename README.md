@@ -3,8 +3,13 @@
 A command-line interface that wraps Pycrypto. Allows for quick and easy
 implementation of Ciphers and Hashes.
 
+`pycrpyto-cli` is meant to be used as an  executable. To use universally,
+it should be added to your path, and dependencies (pycrypto) should be
+installed. For clean pip installation, consider
+[pipsi](https://github.com/mitsuhiko/pipsi).
+
 ```
-$ python cli.py -h
+$ pycrypto-cli -h
 usage: pycrypto-cli [-h] {cipher,hash} ...
 
 positional arguments:
@@ -16,7 +21,7 @@ optional arguments:
   -h, --help     show this help message and exit
 
 
-$ python cli.py cipher -h
+$ pycrypto-cli cipher -h
 usage: pycrypto-cli cipher [-h] [--clipboard] [--input DATA_INPUT_PATH]
                            [--output DATA_OUTPUT_PATH] [--decrypt]
                            [--encoder {URLSAFEBASE64,BASE64,NULL}]
@@ -58,14 +63,14 @@ optional arguments:
 ## Usage
 
 ```
-$ python cli.py cipher xor
+$ pycrypto-cli cipher xor
 Please type data. Press ENTER twice or CTRL+C to end.
 helloworld
 
 Please enter a valid key: password
 DATA: GAQfHxgYHRYcBQ==
 
-$ python cli.py cipher xor -d
+$ pycrypto-cli cipher xor -d
 Please type data. Press ENTER twice or CTRL+C to end.
 GAQfHxgYHRYcBQ==
 
@@ -76,7 +81,10 @@ DATA: helloworld
 
 ## Testing
 
-Executing unit tests:
+Testing is automated through [Travis-CI](https://travis-ci.org/zvxr/pycrypto-cli).
+
+Unit tests can be manually executed:
+
 ```
 python -m crypto.testing.cipher_tests
 ```
