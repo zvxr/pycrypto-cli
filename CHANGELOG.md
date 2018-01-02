@@ -1,6 +1,11 @@
 pycrypto-cli change log
 =======================
 
+0.4.2 (2017-01-01)
+------------------
+- Generate basic setup.py.
+- Rename `cli.py` to executable `pycrypto-cli`.
+
 0.4.1 (2017-12-31)
 ------------------
 - Added Travis hook.
