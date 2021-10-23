@@ -3,6 +3,8 @@
 import crypto
 
 from setuptools import setup, find_packages
+from distutils.core import Extension
+
 
 dependencies = ['pycrypto']
 
@@ -15,6 +17,13 @@ setup(
         "CLI Pycrypto wrapper: allows quick and easy implementation of " +
         "ciphers, Hashes and Keys."
     )),
+    #ext_modules=[
+    #    Extension(
+    #        "crypto.ports._XOR",
+    #        include_dirs=['crypto/ports/'],
+    #        sources=["crypto/ports/XOR.c"]
+    #    ),
+    #],
     url="https://github.com/zvxr/pycrypto-cli",
     packages=find_packages(),
 )

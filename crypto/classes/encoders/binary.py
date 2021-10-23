@@ -1,6 +1,6 @@
 import base64
 
-from base import Encoder
+from crypto.classes.encoders.base import Encoder
 
 
 Base64Encoder = Encoder(base64.b64encode, base64.b64decode)

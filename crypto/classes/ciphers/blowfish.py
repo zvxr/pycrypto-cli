@@ -1,4 +1,4 @@
-from crypto.classes.ciphers.base import BlockCipher
+from crypto.classes.ciphers.base import BlockCipher, BlockCipherMode
 from Crypto import Random
 from Crypto.Cipher import Blowfish
 
@@ -6,6 +6,13 @@ from Crypto.Cipher import Blowfish
 class BlowfishCipher(BlockCipher):
     """Blowfish symmetric block cipher."""
     cipher = Blowfish
+    supported_modes = {
+        'CBC': BlockCipherMode(Blowfish.MODE_CBC, True, False),
+        'CFB': BlockCipherMode(Blowfish.MODE_CFB, True, False),
+        'CTR': BlockCipherMode(Blowfish.MODE_CTR, False, True),
+        'ECB': BlockCipherMode(Blowfish.MODE_ECB, False, False),
+        'OFB': BlockCipherMode(Blowfish.MODE_OFB, True, False)
+    }
 
     def __init__(self, key=None, iv=None, mode=None, initial_value=1):
         """initial_value is only applied to CTR."""

@@ -10,9 +10,9 @@ from crypto.classes.encoders.binary import Base64Encoder, URLSafeBase64Encoder
 
 
 CHAINING_MODE_CHOICES = set(
-    AESCipher.supported_modes.keys() +
-    BlowfishCipher.supported_modes.keys() +
-    CASTCipher.supported_modes.keys()
+    list(AESCipher.supported_modes.keys()) +
+    list(BlowfishCipher.supported_modes.keys()) +
+    list(CASTCipher.supported_modes.keys())
 )
 
 CIPHERS = {

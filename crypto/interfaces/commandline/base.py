@@ -80,7 +80,7 @@ class DataInterface(Interface):
 
         while data[-2:] != "\n\n":
             try:
-                data += raw_input()
+                data += input()
                 data += "\n"
             except KeyboardInterrupt:
                 break
@@ -133,7 +133,7 @@ class DataInterface(Interface):
         """Store data in clipboard."""
         process = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
         stdoutdata, stderrdata = process.communicate(
-            input=data.encode('utf-8')
+            input=data
         )
 
 

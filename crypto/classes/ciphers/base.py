@@ -1,7 +1,6 @@
 from collections import namedtuple
 from crypto.classes.encoders.base import Encoder
 from Crypto import Random
-from Crypto.Cipher import blockalgo
 from Crypto.Util import Counter
 
 
@@ -72,13 +71,7 @@ class BlockCipher(CryptoCipher):
     block_size = 0
     cipher = None
     default_mode = 'ECB'
-    supported_modes = {
-        'CBC': BlockCipherMode(blockalgo.MODE_CBC, True, False),
-        'CFB': BlockCipherMode(blockalgo.MODE_CFB, True, False),
-        'CTR': BlockCipherMode(blockalgo.MODE_CTR, False, True),
-        'ECB': BlockCipherMode(blockalgo.MODE_ECB, False, False),
-        'OFB': BlockCipherMode(blockalgo.MODE_OFB, True, False)
-    }
+    supported_modes = {}
 
     def __init__(self, key=None, iv=None, mode=None, initial_value=1):
         super(BlockCipher, self).__init__(key)

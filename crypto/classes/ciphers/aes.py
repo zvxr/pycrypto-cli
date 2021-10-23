@@ -1,4 +1,4 @@
-from crypto.classes.ciphers.base import BlockCipher
+from crypto.classes.ciphers.base import BlockCipher, BlockCipherMode
 from Crypto import Random
 from Crypto.Cipher import AES
 
@@ -6,6 +6,13 @@ from Crypto.Cipher import AES
 class AESCipher(BlockCipher):
     """AES symmetric cipher."""
     cipher = AES
+    supported_modes = {
+        'CBC': BlockCipherMode(AES.MODE_CBC, True, False),
+        'CFB': BlockCipherMode(AES.MODE_CFB, True, False),
+        'CTR': BlockCipherMode(AES.MODE_CTR, False, True),
+        'ECB': BlockCipherMode(AES.MODE_ECB, False, False),
+        'OFB': BlockCipherMode(AES.MODE_OFB, True, False)
+    }
 
     def __init__(self, key=None, iv=None, mode=None, initial_value=1):
         """initial_value is only applied to CTR."""
